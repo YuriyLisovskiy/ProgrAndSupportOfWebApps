@@ -1,3 +1,13 @@
+let sqlite3 = require('sqlite3').verbose();
+let crypto = require('crypto');
+
+let db = new sqlite3.Database('./shop.db', (err) => {
+	if (err) {
+		return console.error(err.message);
+	}
+	console.log('Connected to the in-memory SQlite database.');
+});
+
 let login = async (request, response) => {
 	response.setHeader('Content-Type', 'application/json');
 	if (request.method === 'POST') {
@@ -18,12 +28,19 @@ let register = async (request, response) => {
 	response.setHeader('Content-Type', 'application/json');
 	if (request.method === 'POST') {
 		let credentials = request.body;
-
-		console.log(credentials);
-
-		// TODO: save user to database
-
-		response.send(JSON.stringify({detail: 'Registration is successful!'}))
+		let query = db.prepare(`INSERT INTO Users (email, username, password) VALUES (?, ?, ?);`);
+		let passwordHash = crypto.createHash('sha256').update(credentials.password).digest('base64');
+		await query.run([credentials.email, credentials.username, passwordHash], (err) => {
+				if (err != null) {
+					response.status(400);
+					response.send(JSON.stringify({detail: err}));
+					console.log(err);
+				} else {
+					response.status(201);
+					response.send(JSON.stringify({detail: 'Registration is successful!'}));
+				}
+			}
+		);
 	} else {
 		response.status(406);
 		response.send(JSON.stringify({detail: 'Not Acceptable'}))

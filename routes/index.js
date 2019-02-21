@@ -6,9 +6,10 @@ let GoodsView = require('../views/goods');
 let AuthViews = require('../views/auth');
 
 router.get('/', IndexView.Index);
-router.post('/api/login', AuthViews.Login);
 router.get('/logout', AuthViews.Logout);
-router.post('/api/register', AuthViews.Register);
 router.get('/api/goods', GoodsView.Goods);
+
+router.post('/api/login', AuthViews.Login);
+router.post('/api/register', AuthViews.Register);
 
 module.exports = router;

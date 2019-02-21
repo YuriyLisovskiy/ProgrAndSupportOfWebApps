@@ -7,7 +7,8 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "express-generator": "^4.16.0",
-    "nodemon": "^1.18.10"
+    "nodemon": "^1.18.10",
+    "sqlite3": "^4.0.6"
   },
   "devDependencies": {},
   "scripts": {
