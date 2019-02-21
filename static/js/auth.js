@@ -1,4 +1,4 @@
-import sendAjax from './util.js'
+import util from './util.js'
 
 let credentialsAreValid = ({email, username, password}, success, error) => {
 	let errors = '';
@@ -44,7 +44,7 @@ let register = () => {
 	let password = document.getElementById('password-register').value;
 	credentialsAreValid({email: email, username: username, password: password},
 		() => {
-			sendAjax({
+			util.sendAjax({
 				method: 'POST',
 				url: '/api/register',
 				params: {
@@ -62,7 +62,7 @@ let register = () => {
 			});
 		},
 		(errors) => {
-			alert('Credentials are invalid: ' + errors);
+			alert('Credentials are invalid:\n' + errors);
 		}
 	)
 };
@@ -72,14 +72,15 @@ let login = () => {
 	let password = document.getElementById('password-login').value;
 	credentialsAreValid({username: username, password: password},
 		() => {
-			sendAjax({
+			util.sendAjax({
 				method: 'POST',
 				url: '/api/login',
 				params: {
 					username: username,
 					password: password
 				},
-				success: () => {
+				success: (data) => {
+					console.log(data);
 					appendLogoutBtn(document.getElementById('nav-buttons'));
 					closeModal(document.getElementById('loginModal'));
 				},
@@ -96,7 +97,7 @@ let login = () => {
 
 document.onreadystatechange = () => {
 	if (document.readyState === 'complete') {
-		document.getElementById('btn-register').addEventListener('click', register);
 		document.getElementById('btn-login').addEventListener('click', login);
+		document.getElementById('btn-register').addEventListener('click', register);
 	}
 };

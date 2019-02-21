@@ -7,6 +7,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "express-generator": "^4.16.0",
+    "jsonwebtoken": "^8.5.0",
     "nodemon": "^1.18.10",
     "sqlite3": "^4.0.6"
   },

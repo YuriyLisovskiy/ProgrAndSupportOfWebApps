@@ -1,4 +1,4 @@
-import sendAjax from './util.js'
+import util from './util.js'
 
 let createGoodsItem = (item) => {
 	let div = document.createElement('div');
@@ -32,7 +32,7 @@ let updateGoods = (data) => {
 };
 
 let getGoods = (page) => {
-	sendAjax({
+	util.sendAjax({
 		method: 'GET',
 		url: '/api/goods',
 		params: {
