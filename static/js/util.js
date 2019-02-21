@@ -1,4 +1,4 @@
-let sendAjax = ({method, url, params, success, error}) => {
+let sendAjax = ({method, url, params, headers, success, error}) => {
 	let formatParams = (params) => {
 		return '?' + Object
 			.keys(params)
@@ -15,6 +15,11 @@ let sendAjax = ({method, url, params, success, error}) => {
 	let request = new XMLHttpRequest();
 	request.open(method, url + formattedParams, true);
 	request.setRequestHeader('Content-type', 'application/json');
+	if (headers) {
+		for (let key in headers) {
+			request.setRequestHeader(key, headers[key]);
+		}
+	}
 	request.onreadystatechange = () => {
 		if (request.readyState === 4) {
 			if (request.status === 200) {
@@ -27,11 +32,11 @@ let sendAjax = ({method, url, params, success, error}) => {
 	request.send(JSON.stringify(params));
 };
 
-let setCookie = (name, value, days) => {
+let setCookie = (name, value, hours) => {
 	let expires = "";
-	if (days) {
+	if (hours) {
 		let date = new Date();
-		date.setTime(date.getTime() + (days*24*60*60*1000));
+		date.setTime(date.getTime() + (hours * 60 * 60 * 1000));
 		expires = "; expires=" + date.toUTCString();
 	}
 	document.cookie = name + "=" + (value || "")  + expires + "; path=/";
@@ -40,10 +45,10 @@ let setCookie = (name, value, days) => {
 let getCookie = (name) => {
 	let nameEQ = name + "=";
 	let ca = document.cookie.split(';');
-	for (let i=0;i < ca.length;i++) {
+	for (let i = 0; i < ca.length; i++) {
 		let c = ca[i];
 		while (c.charAt(0) === ' ') {
-			c = c.substring(1,c.length);
+			c = c.substring(1, c.length);
 		}
 		if (c.indexOf(nameEQ) === 0) {
 			return c.substring(nameEQ.length,c.length);

@@ -10,6 +10,7 @@ router.get('/logout', AuthViews.Logout);
 router.get('/api/goods', GoodsView.Goods);
 
 router.post('/api/login', AuthViews.Login);
+router.post('/api/token/verify', AuthViews.VerifyToken);
 router.post('/api/register', AuthViews.Register);
 
 module.exports = router;

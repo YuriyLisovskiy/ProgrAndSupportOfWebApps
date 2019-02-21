@@ -26,16 +26,38 @@ let closeModal = (modal) => {
 	document.body.removeChild(modalBackdrops[0]);
 };
 
-let appendLogoutBtn = (nav) => {
+let setLogoutBtn = (nav) => {
 	let li = document.createElement('li');
 	li.classList.add('nav-item');
 	let btn = document.createElement('a');
 	btn.className = 'nav-link btn btn-outline-secondary';
 	btn.href = '/logout';
+	btn.id = 'btn-logout';
 	btn.appendChild(document.createTextNode('Logout'));
 	li.appendChild(btn);
-	nav.innerHTML = '';
 	nav.appendChild(li);
+};
+
+let createNavBtn = (title, dataTarget) => {
+	let li = document.createElement('li');
+	li.classList.add('nav-item');
+	let btn = document.createElement('button');
+	btn.className = 'nav-link btn btn-outline-secondary';
+	btn.appendChild(document.createTextNode(title));
+	btn.setAttribute('data-toggle', 'modal');
+	btn.setAttribute('data-target', dataTarget);
+	li.appendChild(btn);
+	return li;
+};
+
+let setLoginBtn = (nav) => {
+	let btn = createNavBtn('Login', '#loginModal');
+	btn.style.marginRight = '10px';
+	nav.appendChild(btn);
+};
+
+let setRegisterBtn = (nav) => {
+	nav.appendChild(createNavBtn('Sign up', '#signUpModal'));
 };
 
 let register = () => {
@@ -81,7 +103,10 @@ let login = () => {
 				},
 				success: (data) => {
 					console.log(data);
-					appendLogoutBtn(document.getElementById('nav-buttons'));
+					util.setCookie('auth_token', data['key'], 1);
+					let nav = document.getElementById('nav-buttons');
+					nav.innerHTML = '';
+					setLogoutBtn(nav);
 					closeModal(document.getElementById('loginModal'));
 				},
 				error: (data) => {
@@ -95,9 +120,40 @@ let login = () => {
 	)
 };
 
+let logout = () => {
+	util.eraseCookie('auth_token');
+};
+
 document.onreadystatechange = () => {
 	if (document.readyState === 'complete') {
-		document.getElementById('btn-login').addEventListener('click', login);
-		document.getElementById('btn-register').addEventListener('click', register);
+		let nav = document.getElementById('nav-buttons');
+		let token = util.getCookie('auth_token');
+		if (token) {
+			util.sendAjax({
+				method: 'POST',
+				url: '/api/token/verify',
+				headers: {
+					authorization: 'Token ' + token
+				},
+				success: () => {
+					// nav.innerHTML = '';
+					setLogoutBtn(nav);
+					document.getElementById('btn-logout').addEventListener('click', logout);
+				},
+				error: (data) => {
+					// nav.innerHTML = '';
+					setLoginBtn(nav);
+					setRegisterBtn(nav);
+					document.getElementById('btn-login').addEventListener('click', login);
+					document.getElementById('btn-register').addEventListener('click', register);
+					console.log(data);
+				}
+			});
+		} else {
+			setLoginBtn(nav);
+			setRegisterBtn(nav);
+			document.getElementById('btn-login').addEventListener('click', login);
+			document.getElementById('btn-register').addEventListener('click', register);
+		}
 	}
 };
