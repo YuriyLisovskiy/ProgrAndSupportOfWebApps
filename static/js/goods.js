@@ -34,7 +34,7 @@ let updateGoods = (data) => {
 let getGoods = (page) => {
 	sendAjax({
 		method: 'GET',
-		url: '/api/v1/goods',
+		url: '/api/goods',
 		params: {
 			page: page
 		},
