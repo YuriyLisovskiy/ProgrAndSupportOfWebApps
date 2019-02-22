@@ -50,14 +50,13 @@ let createNavBtn = (title, dataTarget) => {
 	return li;
 };
 
-let setLoginBtn = (nav) => {
+let setLoginRegisterButtons = (nav) => {
 	let btn = createNavBtn('Login', '#loginModal');
 	btn.style.marginRight = '10px';
 	nav.appendChild(btn);
-};
-
-let setRegisterBtn = (nav) => {
 	nav.appendChild(createNavBtn('Sign up', '#signUpModal'));
+	document.getElementById('btn-login').addEventListener('click', login);
+	document.getElementById('btn-register').addEventListener('click', register);
 };
 
 let register = () => {
@@ -124,36 +123,21 @@ let logout = () => {
 	util.eraseCookie('auth_token');
 };
 
-document.onreadystatechange = () => {
-	if (document.readyState === 'complete') {
-		let nav = document.getElementById('nav-buttons');
-		let token = util.getCookie('auth_token');
-		if (token) {
-			util.sendAjax({
-				method: 'POST',
-				url: '/api/token/verify',
-				headers: {
-					authorization: 'Token ' + token
-				},
-				success: () => {
-					// nav.innerHTML = '';
-					setLogoutBtn(nav);
-					document.getElementById('btn-logout').addEventListener('click', logout);
-				},
-				error: (data) => {
-					// nav.innerHTML = '';
-					setLoginBtn(nav);
-					setRegisterBtn(nav);
-					document.getElementById('btn-login').addEventListener('click', login);
-					document.getElementById('btn-register').addEventListener('click', register);
-					console.log(data);
-				}
-			});
-		} else {
-			setLoginBtn(nav);
-			setRegisterBtn(nav);
-			document.getElementById('btn-login').addEventListener('click', login);
-			document.getElementById('btn-register').addEventListener('click', register);
+document.addEventListener('DOMContentLoaded', () => {
+	let nav = document.getElementById('nav-buttons');
+	util.userIsAuthenticated(
+		(data) => {
+			setLogoutBtn(nav);
+			document.getElementById('btn-logout').addEventListener('click', logout);
+
+			console.log(data);
+		},
+		(data) => {
+			setLoginRegisterButtons(nav);
+
+			if (data) {
+				console.log(data);
+			}
 		}
-	}
-};
+	);
+});

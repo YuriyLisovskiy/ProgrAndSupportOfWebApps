@@ -47,8 +47,6 @@ let getGoods = (page) => {
 	});
 };
 
-document.onreadystatechange = () => {
-	if (document.readyState === 'complete') {
-		getGoods(1);
-	}
-};
+document.addEventListener('DOMContentLoaded', function(e) {
+	getGoods(1);
+});

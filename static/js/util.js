@@ -61,9 +61,32 @@ let eraseCookie = (name) => {
 	document.cookie = name+'=; Max-Age=-99999999;';
 };
 
+let userIsAuthenticated = (success, failed) => {
+	let token = getCookie('auth_token');
+	if (token) {
+		sendAjax({
+			method: 'POST',
+			url: '/api/token/verify',
+			headers: {
+				authorization: 'Token ' + token
+			},
+			success: (data) => {
+				success(data);
+			},
+			error: (data) => {
+				eraseCookie('auth_token');
+				failed(data);
+			}
+		});
+	} else {
+		failed();
+	}
+};
+
 export default {
 	sendAjax: sendAjax,
 	setCookie: setCookie,
 	getCookie: getCookie,
-	eraseCookie: eraseCookie
+	eraseCookie: eraseCookie,
+	userIsAuthenticated: userIsAuthenticated
 };

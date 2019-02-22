@@ -82,17 +82,13 @@ let verifyToken = async (request, response) => {
 		const header = request.headers['authorization'];
 		if (typeof header !== 'undefined') {
 			let token = header.split(' ')[1];
-			jwt.verify(token, secretKey, (err, authorizedData) => {
+			jwt.verify(token, secretKey, (err) => {
 				if (err) {
 					console.log('Could not verify token');
 					response.status(403);
 					response.send(JSON.stringify({detail: 'Could not verify token'}));
 				} else {
-					response.json({
-						message: 'Successful log in',
-						authorizedData
-					});
-					console.log('Token is verified!');
+					response.send(JSON.stringify({detail: 'Token is verified!'}));
 				}
 			});
 		} else {
