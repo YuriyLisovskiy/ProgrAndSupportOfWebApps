@@ -16,7 +16,7 @@ let login = async (request, response) => {
 	if (request.method === 'POST') {
 		let credentials = request.body;
 		db.get(
-			`SELECT email, username, password FROM Users WHERE username = ?;`,
+			`SELECT username, password FROM Users WHERE username = ?;`,
 			[credentials.username],
 			(err, user) => {
 				if (err) {
@@ -56,7 +56,7 @@ let register = async (request, response) => {
 		let query = db.prepare(`INSERT INTO Users (email, username, password) VALUES (?, ?, ?);`);
 		let passwordHash = crypto.createHash('sha256').update(credentials.password).digest('base64');
 		await query.run([credentials.email, credentials.username, passwordHash], (err) => {
-				if (err != null) {
+				if (err) {
 					response.status(400);
 					response.send(JSON.stringify({detail: err}));
 					console.log(err);
@@ -82,12 +82,14 @@ let verifyToken = async (request, response) => {
 		const header = request.headers['authorization'];
 		if (typeof header !== 'undefined') {
 			let token = header.split(' ')[1];
-			jwt.verify(token, secretKey, (err) => {
+			jwt.verify(token, secretKey, (err, data) => {
 				if (err) {
 					console.log('Could not verify token');
 					response.status(403);
 					response.send(JSON.stringify({detail: 'Could not verify token'}));
 				} else {
+					console.log(data.user);
+
 					response.send(JSON.stringify({detail: 'Token is verified!'}));
 				}
 			});

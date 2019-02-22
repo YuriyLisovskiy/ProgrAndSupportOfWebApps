@@ -22,7 +22,7 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 	}
 	request.onreadystatechange = () => {
 		if (request.readyState === 4) {
-			if (request.status === 200) {
+			if (request.status === 200 || request.status === 201) {
 				success(JSON.parse(request.responseText));
 			} else {
 				error(request.status);

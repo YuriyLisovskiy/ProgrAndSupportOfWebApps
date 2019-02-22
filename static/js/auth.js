@@ -101,7 +101,6 @@ let login = () => {
 					password: password
 				},
 				success: (data) => {
-					console.log(data);
 					util.setCookie('auth_token', data['key'], 1);
 					let nav = document.getElementById('nav-buttons');
 					nav.innerHTML = '';
@@ -109,7 +108,7 @@ let login = () => {
 					closeModal(document.getElementById('loginModal'));
 				},
 				error: (data) => {
-					alert('Login failed: ' + data['detail']);
+					alert('Login failed: ' + data);
 				}
 			});
 		},
