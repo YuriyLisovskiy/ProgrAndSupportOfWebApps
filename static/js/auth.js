@@ -34,6 +34,7 @@ let setLogoutBtn = (nav) => {
 	btn.href = '/logout';
 	btn.id = 'btn-logout';
 	btn.appendChild(document.createTextNode('Logout'));
+	btn.addEventListener('click', logout);
 	li.appendChild(btn);
 	nav.appendChild(li);
 };
@@ -108,7 +109,7 @@ let login = () => {
 					closeModal(document.getElementById('loginModal'));
 				},
 				error: (data) => {
-					alert('Login failed: ' + data);
+					alert('Login failed: ' + JSON.parse(data)['detail']);
 				}
 			});
 		},
@@ -127,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	util.userIsAuthenticated(
 		(data) => {
 			setLogoutBtn(nav);
-			document.getElementById('btn-logout').addEventListener('click', logout);
 
 			console.log(data);
 		},

@@ -35,11 +35,11 @@ let login = async (request, response) => {
 					} else {
 						console.log('ERROR: Could not log in');
 						response.status(400);
-						response.send(JSON.stringify({detail: 'Could not login!'}))
+						response.send(JSON.stringify({detail: 'invalid credentials'}))
 					}
 				} else {
 					response.status(404);
-					response.send(JSON.stringify({detail: 'User does not exist!'}));
+					response.send(JSON.stringify({detail: 'user does not exist'}));
 				}
 			}
 		);

@@ -25,7 +25,7 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 			if (request.status === 200 || request.status === 201) {
 				success(JSON.parse(request.responseText));
 			} else {
-				error(request.status);
+				error(request.responseText);
 			}
 		}
 	};
