@@ -1,14 +1,14 @@
 let sqlite3 = require('sqlite3').verbose();
 let crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-
-let secretKey = 'secret_key';
+const util = require('./util');
+const settings = require('./settings');
 
 let db = new sqlite3.Database('./shop.db', (err) => {
 	if (err) {
 		return console.error(err.message);
 	}
-	console.log('Connected to the in-memory SQlite database.');
+	console.log('Connected to the SQLite database.');
 });
 
 let login = async (request, response) => {
@@ -16,7 +16,7 @@ let login = async (request, response) => {
 	if (request.method === 'POST') {
 		let credentials = request.body;
 		db.get(
-			`SELECT username, password FROM Users WHERE username = ?;`,
+			`SELECT username, password, email, is_superuser FROM Users WHERE username = ?;`,
 			[credentials.username],
 			(err, user) => {
 				if (err) {
@@ -24,12 +24,18 @@ let login = async (request, response) => {
 				} else if (user) {
 					let pwd_hash = crypto.createHash('sha256').update(credentials.password).digest('base64');
 					if (credentials.username === user.username && pwd_hash === user.password) {
-						jwt.sign({user}, secretKey, { expiresIn: '1h' }, (err, token) => {
+						jwt.sign(user, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
 							if (err) {
 								console.log(err);
 								response.sendStatus(400);
 							} else {
-								response.send(JSON.stringify({key: token}));
+								response.send(JSON.stringify({
+									key: token,
+									user: {
+										username: user.username,
+										is_superuser: user.is_superuser
+									}
+								}));
 							}
 						});
 					} else {
@@ -79,23 +85,25 @@ let logout = async (request, response) => {
 let verifyToken = async (request, response) => {
 	response.setHeader('Content-Type', 'application/json');
 	if (request.method === 'POST') {
-		const header = request.headers['authorization'];
-		if (typeof header !== 'undefined') {
-			let token = header.split(' ')[1];
-			jwt.verify(token, secretKey, (err, data) => {
-				if (err) {
-					console.log('Could not verify token');
-					response.status(403);
-					response.send(JSON.stringify({detail: 'Could not verify token'}));
-				} else {
-					console.log(data.user);
-
-					response.send(JSON.stringify({detail: 'Token is verified!'}));
-				}
-			});
-		} else {
-			response.sendStatus(403);
-		}
+		util.VerifyToken(request, settings.SecretKey,
+			(data) => {
+				response.send(JSON.stringify({
+					detail: 'Token is verified!',
+					user: {
+						username: data.username,
+						is_superuser: data.is_superuser
+					}
+				}));
+			},
+			() => {
+				console.log('Could not verify token');
+				response.status(403);
+				response.send(JSON.stringify({detail: 'Could not verify token'}));
+			}
+		);
+	} else {
+		response.status(406);
+		response.send(JSON.stringify({error: 'Not Acceptable'}));
 	}
 };
 

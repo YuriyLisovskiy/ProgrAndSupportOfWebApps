@@ -3,13 +3,13 @@ module.exports = {
 		response.setHeader('Content-Type', 'application/json');
 		if (request.method === 'GET') {
 			let page = request.query.page;
-			let limit = 5;
+			let limit = 3;
 
 			let data = [
 				{
 					code: 123,
 					title: 'Apple',
-					description: 'Some apple product',
+					description: 'Lorem ipsum dolor sit',
 					price: 1000
 				},
 				{

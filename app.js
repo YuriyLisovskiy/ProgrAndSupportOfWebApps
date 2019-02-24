@@ -1,11 +1,14 @@
 let express = require('express');
 let bodyParser = require('body-parser');
+let cookieParser = require('cookie-parser');
 
 let router = require('./routes/index');
 
 let app = express();
 
 app.use(bodyParser.json());
+app.use(cookieParser());
+
 app.use('/static', express.static('static'));
 
 app.use('/', router);

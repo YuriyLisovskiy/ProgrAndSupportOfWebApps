@@ -11,20 +11,6 @@ let createGoodsItem = (item) => {
 	cardTitle.className = 'card-title';
 	cardTitle.appendChild(document.createTextNode(item['title']));
 
-	let popover = document.createElement('button');
-	popover.className = 'btn btn-secondary';
-//	popover.setAttribute('data-container', 'body');
-	popover.setAttribute('data-toggle', 'popover');
-	popover.setAttribute('data-placement', 'top');
-	popover.setAttribute('data-content', item['description']);
-	popover.setAttribute('data-trigger', 'focus');
-	popover.style.float = 'right';
-	popover.style.height = '25px';
-	popover.style.padding = '5px';
-	popover.style.paddingTop = '0';
-	popover.style.paddingBottom = '7px';
-	popover.appendChild(document.createTextNode('more'));
-
 	let description = document.createElement('p');
 	description.className = 'text-truncate';
 	description.style.width = '80%';
@@ -32,11 +18,26 @@ let createGoodsItem = (item) => {
 
 	let cardText = document.createElement('div');
 	cardText.className = 'card-text';
-	cardText.appendChild(popover);
+	if (item['description'].length > 26) {
+		let popover = document.createElement('button');
+		popover.className = 'btn btn-secondary';
+		popover.setAttribute('data-toggle', 'popover');
+		popover.setAttribute('data-placement', 'top');
+		popover.setAttribute('data-trigger', 'focus');
+		popover.setAttribute('data-content', item['description']);
+		popover.style.float = 'right';
+		popover.style.height = '25px';
+		popover.style.padding = '5px';
+		popover.style.paddingTop = '0';
+		popover.style.paddingBottom = '7px';
+		popover.appendChild(document.createTextNode('more'));
+		cardText.appendChild(popover);
+	}
 	cardText.appendChild(description);
 
 	let price = document.createElement('span');
-	price.className = 'badge badge-pill badge-danger';
+	price.className = 'badge badge-pill badge-success';
+	price.style.backgroundColor = '#517c1b';
 	price.style.float = 'left';
 	price.appendChild(document.createTextNode('$ ' + item['price']));
 
@@ -54,7 +55,7 @@ let createGoodsItem = (item) => {
 	cardBody.appendChild(btn);
 
 	let card = document.createElement('div');
-	card.className = 'card';
+	card.className = 'card ml-5 mb-5';
 	card.style.width = '300px';
 	card.style.height = '460px';
 	card.appendChild(img);
@@ -68,15 +69,19 @@ let updateGoods = (data, container, pages) => {
 	pages.innerHTML = '';
 	for (let i = 0; i < data['pages']; i++) {
 		let button = document.createElement('button');
+		button.className = 'page-link';
 		button.appendChild(document.createTextNode(i + 1));
 		button.addEventListener('click', function () {
 			loadGoods(i + 1, container, pages);
 		});
-		pages.appendChild(button);
+		let li = document.createElement('li');
+		li.className = 'page-item';
+		li.appendChild(button);
+		pages.appendChild(li);
 	}
 	for (let i = 0; i < data['goods'].length; i++) {
 		let row = document.createElement('div');
-		row.className = 'row';
+		row.className = 'row mt-20';
 		let j = i;
 		for (j = i; j < i + 3 && j < data['goods'].length; j++) {
 			row.appendChild(createGoodsItem(data['goods'][j]));
@@ -87,17 +92,19 @@ let updateGoods = (data, container, pages) => {
 };
 
 let initGoodsList = (root) => {
-	let pages = document.createElement('div');
-	pages.id = 'pages';
-
 	let container = document.createElement('div');
 	container.className = 'container';
+	container.style.paddingTop = '20px';
+
+	let ulPages = document.createElement('ul');
+	ulPages.className = 'pagination justify-content-center';
+	ulPages.style.marginTop = '10px';
+
+	loadGoods(1, container, ulPages);
 
 	root.innerHTML = '';
-	root.appendChild(pages);
 	root.appendChild(container);
-
-	loadGoods(1, container, pages);
+	root.appendChild(ulPages);
 };
 
 let loadGoods = (page, container, pages) => {
@@ -116,6 +123,6 @@ let loadGoods = (page, container, pages) => {
 	});
 };
 
-document.addEventListener('DOMContentLoaded', function(e) {
+document.addEventListener('DOMContentLoaded', function() {
 	initGoodsList(document.getElementById('root'));
 });
