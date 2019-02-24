@@ -18,14 +18,6 @@ let credentialsAreValid = ({email, username, password}, success, error) => {
 	}
 };
 
-let closeModal = (modal) => {
-	modal.classList.remove('show');
-	modal.setAttribute('aria-hidden', 'true');
-	modal.setAttribute('style', 'display: none');
-	const modalBackdrops = document.getElementsByClassName('modal-backdrop');
-	document.body.removeChild(modalBackdrops[0]);
-};
-
 let setLogoutBtn = (nav) => {
 	let li = document.createElement('li');
 	li.classList.add('nav-item');
@@ -34,6 +26,19 @@ let setLogoutBtn = (nav) => {
 	btn.href = '/logout';
 	btn.id = 'btn-logout';
 	btn.appendChild(document.createTextNode('Logout'));
+	btn.addEventListener('click', logout);
+	li.appendChild(btn);
+	nav.appendChild(li);
+};
+
+let setAdminBtn = (nav) => {
+	let li = document.createElement('li');
+	li.classList.add('nav-item');
+	let btn = document.createElement('a');
+	btn.className = 'nav-link btn btn-outline-secondary';
+	btn.href = '/administration';
+	btn.style.marginRight = '10px';
+	btn.appendChild(document.createTextNode('Administration'));
 	li.appendChild(btn);
 	nav.appendChild(li);
 };
@@ -50,7 +55,7 @@ let createNavBtn = (title, dataTarget) => {
 	return li;
 };
 
-let setLoginRegisterButtons = (nav) => {
+let setNavButtons = (nav) => {
 	let btn = createNavBtn('Login', '#loginModal');
 	btn.style.marginRight = '10px';
 	nav.appendChild(btn);
@@ -75,7 +80,7 @@ let register = () => {
 				},
 				success: (data) => {
 					alert(data['detail']);
-					closeModal(document.getElementById('signUpModal'));
+					$('#signUpModal').modal('hide');
 				},
 				error: (data) => {
 					alert('Registration failed:\n' + data['detail']);
@@ -104,11 +109,14 @@ let login = () => {
 					util.setCookie('auth_token', data['key'], 1);
 					let nav = document.getElementById('nav-buttons');
 					nav.innerHTML = '';
+					if (data['user']['is_superuser']) {
+						setAdminBtn(nav);
+					}
 					setLogoutBtn(nav);
-					closeModal(document.getElementById('loginModal'));
+					$('#loginModal').modal('hide');
 				},
 				error: (data) => {
-					alert('Login failed: ' + data);
+					alert('Login failed: ' + JSON.parse(data)['detail']);
 				}
 			});
 		},
@@ -126,13 +134,15 @@ document.addEventListener('DOMContentLoaded', () => {
 	let nav = document.getElementById('nav-buttons');
 	util.userIsAuthenticated(
 		(data) => {
+			if (data['user']['is_superuser']) {
+				setAdminBtn(nav);
+			}
 			setLogoutBtn(nav);
-			document.getElementById('btn-logout').addEventListener('click', logout);
 
 			console.log(data);
 		},
 		(data) => {
-			setLoginRegisterButtons(nav);
+			setNavButtons(nav);
 
 			if (data) {
 				console.log(data);

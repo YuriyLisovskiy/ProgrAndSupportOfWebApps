@@ -10,7 +10,9 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 	method = method.toLowerCase();
 	let formattedParams = '';
 	if (method === 'get') {
-		formattedParams = formatParams(params);
+		if (params) {
+			formattedParams = formatParams(params);
+		}
 	}
 	let request = new XMLHttpRequest();
 	request.open(method, url + formattedParams, true);
@@ -20,16 +22,18 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 			request.setRequestHeader(key, headers[key]);
 		}
 	}
-	request.onreadystatechange = () => {
-		if (request.readyState === 4) {
-			if (request.status === 200 || request.status === 201) {
-				success(JSON.parse(request.responseText));
-			} else {
-				error(request.status);
-			}
+	request.addEventListener('load', () => {
+		if (request.status === 200 || request.status === 201) {
+			success(JSON.parse(request.responseText));
+		} else {
+			error(request.responseText);
 		}
-	};
-	request.send(JSON.stringify(params));
+	}, false);
+	if (params) {
+		request.send(JSON.stringify(params));
+	} else {
+		request.send(null);
+	}
 };
 
 let setCookie = (name, value, hours) => {
@@ -51,36 +55,28 @@ let getCookie = (name) => {
 			c = c.substring(1, c.length);
 		}
 		if (c.indexOf(nameEQ) === 0) {
-			return c.substring(nameEQ.length,c.length);
+			return c.substring(nameEQ.length, c.length);
 		}
 	}
 	return null;
 };
 
 let eraseCookie = (name) => {
-	document.cookie = name+'=; Max-Age=-99999999;';
+	document.cookie = name+'=; Max-Age=-1;';
 };
 
 let userIsAuthenticated = (success, failed) => {
-	let token = getCookie('auth_token');
-	if (token) {
-		sendAjax({
-			method: 'POST',
-			url: '/api/token/verify',
-			headers: {
-				authorization: 'Token ' + token
-			},
-			success: (data) => {
-				success(data);
-			},
-			error: (data) => {
-				eraseCookie('auth_token');
-				failed(data);
-			}
-		});
-	} else {
-		failed();
-	}
+	sendAjax({
+		method: 'POST',
+		url: '/api/token/verify',
+		success: (data) => {
+			success(data);
+		},
+		error: (data) => {
+			eraseCookie('auth_token');
+			failed(data);
+		}
+	});
 };
 
 export default {
