@@ -7,6 +7,7 @@ let router = require('./routes/index');
 let app = express();
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use('/static', express.static('static'));

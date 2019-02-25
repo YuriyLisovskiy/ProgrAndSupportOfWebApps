@@ -27,20 +27,54 @@ let sendJsonError = (response, err, code, detail) => {
 	response.send(JSON.stringify(message));
 };
 
-let SendJsonNotAcceptable = (response, detail) => {
-	sendJsonError(response, 'Not acceptable', 406, detail);
+let sendHtmlError = (response, err, code, detail) => {
+	response.status(code);
+	let htmlMsg = '<h3 style="text-align: center">' + code + ' ' + err + '</h3>';
+	if (detail) {
+		htmlMsg += '<h5 style="text-align: center">' + detail + '</h5>';
+	}
+	response.send(htmlMsg);
 };
 
-let SendJsonNotFound = (response, detail) => {
-	sendJsonError(response, 'Not Found', 404, detail);
+let SendNotAcceptable = (response, detail, json = true) => {
+	if (json) {
+		sendJsonError(response, 'Not Acceptable', 406, detail);
+	} else {
+		sendHtmlError(response, 'Not Acceptable', 406, detail);
+	}
 };
 
-let SendJsonBadRequest = (response, detail) => {
-	sendJsonError(response, 'Bad Request', 400, detail);
+let SendNotFound = (response, detail, json = true) => {
+	if (json) {
+		sendJsonError(response, 'Not Found', 404, detail);
+	} else {
+		sendHtmlError(response, 'Not Found', 404, detail);
+	}
 };
 
-let SendJsonForbidden = (response, detail) => {
-	sendJsonError(response, 'Forbidden', 403, detail);
+let SendBadRequest = (response, detail, json = true) => {
+	if (json) {
+		sendJsonError(response, 'Bad Request', 400, detail);
+	} else {
+		sendHtmlError(response, 'Bad Request', 400, detail);
+	}
+};
+
+let SendForbidden = (response, detail, json = true) => {
+	if (json === true) {
+		sendJsonError(response, 'Forbidden', 403, detail);
+	} else {
+		sendHtmlError(response, 'Forbidden', 403, detail);
+	}
+};
+
+// Internal Server Error
+let SendInternalServerError = (response, detail, json = true) => {
+	if (json === true) {
+		sendJsonError(response, 'Internal Server Error', 500, detail);
+	} else {
+		sendHtmlError(response, 'Internal Server Error', 500, detail);
+	}
 };
 
 let sendJsonResponse = (response, code, content) => {
@@ -49,20 +83,21 @@ let sendJsonResponse = (response, code, content) => {
 	response.send(JSON.stringify(content));
 };
 
-let SendJsonOk = (response, content) => {
+let SendOk = (response, content) => {
 	sendJsonResponse(response, 200, content);
 };
 
-let SendJsonCreated = (response, content) => {
+let SendCreated = (response, content) => {
 	sendJsonResponse(response, 201, content);
 };
 
 module.exports = {
 	VerifyToken: VerifyToken,
-	SendJsonNotAcceptable: SendJsonNotAcceptable,
-	SendJsonNotFound: SendJsonNotFound,
-	SendJsonBadRequest: SendJsonBadRequest,
-	SendJsonOk: SendJsonOk,
-	SendJsonCreated: SendJsonCreated,
-	SendJsonForbidden: SendJsonForbidden
+	SendNotAcceptable: SendNotAcceptable,
+	SendNotFound: SendNotFound,
+	SendBadRequest: SendBadRequest,
+	SendOk: SendOk,
+	SendCreated: SendCreated,
+	SendForbidden: SendForbidden,
+	SendInternalServerError: SendInternalServerError
 };

@@ -12,6 +12,7 @@ router.get('/api/goods', GoodsView.Goods);
 router.get('/administration', AdministrationView.Administration);
 
 router.post('/api/login', AuthViews.Login);
+router.post('/api/goods', GoodsView.Goods);
 router.post('/api/register', AuthViews.Register);
 router.post('/api/token/verify', AuthViews.VerifyToken);
 router.post('/administration', AdministrationView.Administration);

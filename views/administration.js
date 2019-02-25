@@ -5,40 +5,45 @@ const dbModule = require('./db');
 
 let db = new dbModule.Db(settings.DbPath);
 
-let get = (request, response) => {
-	util.VerifyToken(request, settings.SecretKey,
-		(data) => {
-			db.getUser(data.username, (user) => {
-				if (user.is_superuser) {
-					response.sendFile(path.resolve('static/html/administration.html'));
-				} else {
-					response.status(403);
-					response.send('<h3 style="text-align: center">403 Forbidden</h3>');
-				}
-			}, () => {
-				response.status(404);
-				response.send('<h3 style="text-align: center">404 Not Found</h3>');
-			});
-		},
+let get = (response, user) => {
+	if (user.is_superuser) {
+		response.sendFile(path.resolve('static/html/administration.html'));
+	} else {
+		util.SendForbidden(response, null, false);
+	}
+};
+
+let post = (request, response) => {
+	let data = request.body;
+	db.createGoods(data.title, parseFloat(data.price), data.description,
 		() => {
-			console.log('Could not verify token');
-			response.status(403);
-			response.send('<h3 style="text-align: center">403 Forbidden</h3>');
+			response.redirect('/administration');
+		},
+		(err) => {
+			console.log(err);
+			util.SendBadRequest(response, err, false);
 		}
 	);
 };
 
-let post = (request, response) => {
-	response.status(406);
-	response.send('<h3 style="text-align: center">406 Not Acceptable</h3>');
-};
-
 module.exports = {
 	Administration: function (request, response) {
-		if (request.method === 'GET') {
-			get(request, response);
-		} else {
-			post(request, response);
-		}
+		util.VerifyToken(request, settings.SecretKey,
+			(data) => {
+				db.getUser(data.username, (user) => {
+					if (request.method === 'GET') {
+						get(response, user);
+					} else {
+						post(request, response);
+					}
+				}, () => {
+					util.SendNotFound(response, null, false);
+				});
+			},
+			() => {
+				console.log('Could not verify token');
+				util.SendForbidden(response, null, false);
+			}
+		);
 	}
 };

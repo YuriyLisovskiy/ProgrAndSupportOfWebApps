@@ -40,6 +40,46 @@ class Db {
 			}
 		);
 	}
+
+	getGoods (success, failed) {
+		this.db.all(
+			`SELECT code, title, price, description FROM Goods;`,
+			(err, goods) => {
+				if (err) {
+					console.log(err);
+					failed({detail: err});
+				} else if (goods) {
+					success(goods);
+				} else {
+					failed();
+				}
+			}
+		);
+	}
+
+	createGoods (title, price, description, success, failed) {
+		let query = this.db.prepare(`INSERT INTO Goods (title, price, description) VALUES (?, ?, ?);`);
+		query.run([title, price, description], (err) => {
+				if (err) {
+					failed(err);
+				} else {
+					success();
+				}
+			}
+		);
+	}
+
+	deleteGoods (code, success, failed) {
+		let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
+		query.run([code], (err) => {
+				if (err) {
+					failed(err);
+				} else {
+					success();
+				}
+			}
+		);
+	}
 }
 
 module.exports = {

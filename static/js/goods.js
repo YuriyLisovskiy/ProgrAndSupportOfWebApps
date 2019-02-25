@@ -112,7 +112,8 @@ let loadGoods = (page, container, pages) => {
 		method: 'GET',
 		url: '/api/goods',
 		params: {
-			page: page
+			page: page,
+			limit: 3
 		},
 		success: (data) => {
 			updateGoods(data, container, pages);

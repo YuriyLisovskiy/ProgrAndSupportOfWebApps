@@ -1,7 +1,12 @@
-let path = require('path');
+const path = require('path');
+const util = require('./util');
 
 module.exports = {
-	Index: async function (request, response) {
-		response.sendFile(path.resolve('static/html/index.html'));
+	Index: function (request, response) {
+		if (request.method === 'GET') {
+			response.sendFile(path.resolve('static/html/index.html'));
+		} else {
+			util.SendNotAcceptable(response);
+		}
 	}
 };

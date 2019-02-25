@@ -16,9 +16,9 @@ let Login = (request, response) => {
 					jwt.sign(user, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
 						if (err) {
 							console.log(err);
-							util.SendJsonBadRequest(response);
+							util.SendBadRequest(response);
 						} else {
-							util.SendJsonCreated(response, {
+							util.SendCreated(response, {
 								key: token,
 								user: {
 									username: user.username,
@@ -49,15 +49,15 @@ let Register = (request, response) => {
 			credentials.email,
 			credentials.password,
 			() => {
-				util.SendJsonCreated(response, {detail: 'registration is successful'});
+				util.SendCreated(response, {detail: 'registration is successful'});
 			},
 			(err) => {
 				console.log(err);
-				util.SendJsonBadRequest(response, err);
+				util.SendBadRequest(response, err);
 			}
 		);
 	} else {
-		util.SendJsonNotAcceptable(response);
+		util.SendNotAcceptable(response);
 	}
 };
 
@@ -65,7 +65,7 @@ let Logout = (request, response) => {
 	if (request.method === 'GET' || request.method === 'POST') {
 		response.redirect('/');
 	} else {
-		util.SendJsonNotAcceptable(response);
+		util.SendNotAcceptable(response);
 	}
 };
 
@@ -75,7 +75,7 @@ let VerifyToken = (request, response) => {
 			(data) => {
 				db.getUser(data.username,
 					(user) => {
-						util.SendJsonCreated(response, {
+						util.SendCreated(response, {
 							detail: 'token is verified',
 							user: {
 								username: user.username,
@@ -85,17 +85,17 @@ let VerifyToken = (request, response) => {
 					},
 					(err) => {
 						console.log(err);
-						util.SendJsonNotFound(response, 'user does not exist');
+						util.SendNotFound(response, 'user does not exist');
 					}
 				);
 			},
 			() => {
 				console.log('Could not verify token');
-				util.SendJsonForbidden(response, 'could not verify token');
+				util.SendForbidden(response, 'could not verify token');
 			}
 		);
 	} else {
-		util.SendJsonNotAcceptable(response);
+		util.SendNotAcceptable(response);
 	}
 };
 
