@@ -1,6 +1,7 @@
+const util = require('./util');
+
 module.exports = {
-	Goods: async function (request, response) {
-		response.setHeader('Content-Type', 'application/json');
+	Goods: function (request, response) {
 		if (request.method === 'GET') {
 			let page = request.query.page;
 			let limit = 3;
@@ -44,13 +45,12 @@ module.exports = {
 				}
 			];
 
-			response.send(JSON.stringify({
+			util.SendJsonOk(response, {
 				goods: data.slice(limit * (page - 1), limit * page),
 				pages: Math.ceil(data.length / limit)
-			}));
+			});
 		} else {
-			response.status(406);
-			response.send(JSON.stringify({error: 'Not Acceptable'}));
+			util.SendJsonNotAcceptable(response);
 		}
 	}
 };
