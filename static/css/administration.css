@@ -2,3 +2,11 @@
 	text-align: center;
 	margin-top: 20px;
 }
+
+#save-goods {
+	float: right;
+}
+
+#available-goods-pages {
+	margin-top: 10px;
+}
