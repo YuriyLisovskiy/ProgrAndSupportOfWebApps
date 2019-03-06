@@ -11,6 +11,22 @@ class Db {
 		});
 	}
 
+	getData(query, success, failed) {
+		this.db.all(
+			query,
+			(err, data) => {
+				if (err) {
+					console.log(err);
+					failed({detail: err});
+				} else if (data) {
+					success(data);
+				} else {
+					failed();
+				}
+			}
+		);
+	}
+
 	getUser (username, success, failed) {
 		this.db.get(
 			`SELECT username, email, password, is_superuser FROM Users WHERE username = ?;`,
@@ -42,19 +58,7 @@ class Db {
 	}
 
 	getGoods (success, failed) {
-		this.db.all(
-			`SELECT code, title, price, description FROM Goods;`,
-			(err, goods) => {
-				if (err) {
-					console.log(err);
-					failed({detail: err});
-				} else if (goods) {
-					success(goods);
-				} else {
-					failed();
-				}
-			}
-		);
+		this.getData(`SELECT code, title, price, description FROM Goods;`, success, failed);
 	}
 
 	createGoods (title, price, description, success, failed) {
@@ -79,6 +83,10 @@ class Db {
 				}
 			}
 		);
+	}
+
+	getPromotions(success, failed) {
+		this.getData(`SELECT id, percentage, comment FROM Promotions;`, success, failed);
 	}
 }
 

@@ -1,15 +1,19 @@
 import util from '/static/js/util.js';
 
-let createTableRow = (item, container, pages) => {
+let createGoodsRow = (item, container, pages) => {
 	let title = document.createElement('th');
 	title.appendChild(document.createTextNode(item['title']));
 
 	let price = document.createElement('th');
 	price.appendChild(document.createTextNode('$ ' + item['price']));
 
+	let pDescription = document.createElement('p');
+	pDescription.style.textOverflow = 'word-wrap';
+	pDescription.style.width = '100%';
+	pDescription.appendChild(document.createTextNode(item['description']));
+
 	let description = document.createElement('th');
-	description.className = 'text-truncate';
-	description.appendChild(document.createTextNode(item['description']));
+	description.appendChild(pDescription);
 
 	let btnDelete = document.createElement('button');
 	btnDelete.className = 'btn btn-danger';
@@ -17,7 +21,7 @@ let createTableRow = (item, container, pages) => {
 	btnDelete.appendChild(document.createTextNode('Delete'));
 	btnDelete.addEventListener('click', () => {
 		util.sendAjax({
-			method: 'POST',
+			method: 'DELETE',
 			url: '/api/goods',
 			params: {
 				goods_code: item['code']
@@ -47,30 +51,12 @@ let refreshGoods = (data, container, pages) => {
 	if (data['goods'].length > 0) {
 		container.innerHTML = '';
 		pages.innerHTML = '';
-		for (let i = 0; i < data['pages']; i++) {
-			let button = document.createElement('button');
-			button.className = 'page-link';
-			button.appendChild(document.createTextNode(i + 1));
-			button.addEventListener('click', function () {
-				loadGoods(i + 1, container, pages);
-			});
-			let li = document.createElement('li');
-			li.className = 'page-item';
-			li.appendChild(button);
-			pages.appendChild(li);
-		}
+		util.appendPages(data['pages'], pages, container, loadGoods);
 		for (let i = 0; i < data['goods'].length; i++) {
-			container.appendChild(createTableRow(data['goods'][i], container, pages));
+			container.appendChild(createGoodsRow(data['goods'][i], container, pages));
 		}
 	} else {
-		let listEmpty = document.createElement('h4');
-		listEmpty.style.textAlign = 'center';
-		listEmpty.style.marginTop = '10px';
-		listEmpty.className = 'text-muted';
-		listEmpty.appendChild(document.createTextNode('No goods'));
-		let root = document.getElementById('available-goods');
-		root.innerHTML = '';
-		root.appendChild(listEmpty);
+		util.appendNoDataMessage(document.getElementById('available-goods'), 'No goods');
 	}
 };
 
@@ -95,6 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById('btn-logout').addEventListener('click', function () {
 		util.eraseCookie('auth_token');
 	});
+	loadGoods(
+		1,
+		document.getElementById('available-goods-tbody'),
+		document.getElementById('available-goods-pages')
+	);
 	document.getElementById('available-goods-tab').addEventListener('click', () => {
 		loadGoods(
 			1,

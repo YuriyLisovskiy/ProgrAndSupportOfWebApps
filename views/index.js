@@ -1,5 +1,5 @@
 const path = require('path');
-const util = require('./util');
+const util = require('../util/util');
 
 module.exports = {
 	Index: function (request, response) {

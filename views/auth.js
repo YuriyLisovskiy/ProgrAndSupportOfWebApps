@@ -1,8 +1,8 @@
-const util = require('./util');
+const util = require('../util/util');
 const crypto = require('crypto');
-const dbModule = require('./db');
+const dbModule = require('../util/db');
 const jwt = require('jsonwebtoken');
-const settings = require('./settings');
+const settings = require('../util/settings');
 
 let db = new dbModule.Db(settings.DbPath);
 

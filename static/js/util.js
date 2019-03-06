@@ -79,10 +79,37 @@ let userIsAuthenticated = (success, failed) => {
 	});
 };
 
+let appendPages = (pages, pagesContainer, container, eventListener) => {
+	for (let i = 0; i < pages; i++) {
+		let button = document.createElement('button');
+		button.className = 'page-link';
+		button.appendChild(document.createTextNode(i + 1));
+		button.addEventListener('click', function () {
+			eventListener(i + 1, container, pagesContainer);
+		});
+		let li = document.createElement('li');
+		li.className = 'page-item';
+		li.appendChild(button);
+		pagesContainer.appendChild(li);
+	}
+};
+
+let appendNoDataMessage = (root, message) => {
+	let listEmpty = document.createElement('h4');
+	listEmpty.style.textAlign = 'center';
+	listEmpty.style.marginTop = '10px';
+	listEmpty.className = 'text-muted';
+	listEmpty.appendChild(document.createTextNode(message));
+	root.innerHTML = '';
+	root.appendChild(listEmpty);
+};
+
 export default {
 	sendAjax: sendAjax,
 	setCookie: setCookie,
 	getCookie: getCookie,
 	eraseCookie: eraseCookie,
-	userIsAuthenticated: userIsAuthenticated
+	userIsAuthenticated: userIsAuthenticated,
+	appendPages: appendPages,
+	appendNoDataMessage: appendNoDataMessage
 };

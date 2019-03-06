@@ -1,6 +1,6 @@
-const util = require('./util');
-const settings = require('./settings');
-const dbModule = require('./db');
+const util = require('../util/util');
+const settings = require('../util/settings');
+const dbModule = require('../util/db');
 
 let db = new dbModule.Db(settings.DbPath);
 
@@ -20,7 +20,7 @@ module.exports = {
 					util.SendInternalServerError(response);
 				}
 			);
-		} else if (request.method === 'POST') {
+		} else if (request.method === 'DELETE') {
 			db.deleteGoods(request.body.goods_code,
 				() => {
 					util.SendOk(response, {detail: 'goods item is deleted'})
