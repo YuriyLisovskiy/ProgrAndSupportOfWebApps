@@ -1,6 +1,8 @@
 import util from '/static/js/util.js';
 
-let createGoodsRow = (item, container, pages) => {
+let page = 1;
+
+let createGoodsRow = (item) => {
 	let title = document.createElement('th');
 	title.appendChild(document.createTextNode(item['title']));
 
@@ -19,6 +21,7 @@ let createGoodsRow = (item, container, pages) => {
 	btnDelete.className = 'btn btn-danger';
 	btnDelete.type = 'button';
 	btnDelete.appendChild(document.createTextNode('Delete'));
+	let tr = document.createElement('tr');
 	btnDelete.addEventListener('click', () => {
 		util.sendAjax({
 			method: 'DELETE',
@@ -27,7 +30,7 @@ let createGoodsRow = (item, container, pages) => {
 				goods_code: item['code']
 			},
 			success: () => {
-				loadGoods(1, container, pages);
+				tr.parentNode.removeChild(tr);
 			},
 			error: (data) => {
 				alert(data);
@@ -37,8 +40,6 @@ let createGoodsRow = (item, container, pages) => {
 
 	let btnDeleteTh = document.createElement('th');
 	btnDeleteTh.appendChild(btnDelete);
-
-	let tr = document.createElement('tr');
 	tr.appendChild(title);
 	tr.appendChild(price);
 	tr.appendChild(description);
@@ -47,50 +48,23 @@ let createGoodsRow = (item, container, pages) => {
 	return tr;
 };
 
-let refreshGoods = (data, container, pages) => {
-	if (data['goods'].length > 0) {
-		container.innerHTML = '';
-		pages.innerHTML = '';
-		util.appendPages(data['pages'], pages, container, loadGoods);
-		for (let i = 0; i < data['goods'].length; i++) {
-			container.appendChild(createGoodsRow(data['goods'][i], container, pages));
-		}
-	} else {
-		util.appendNoDataMessage(document.getElementById('available-goods'), 'No goods');
-	}
-};
-
-let loadGoods = (page, container, pages) => {
-	util.sendAjax({
-		method: 'GET',
-		url: '/api/goods',
-		params: {
-			page: page,
-			limit: 10
-		},
-		success: (data) => {
-			refreshGoods(data, container, pages);
-		},
-		error: (data) => {
-			alert(data);
-		}
-	});
-};
-
 document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById('btn-logout').addEventListener('click', function () {
 		util.eraseCookie('auth_token');
 	});
-	loadGoods(
-		1,
-		document.getElementById('available-goods-tbody'),
-		document.getElementById('available-goods-pages')
-	);
-	document.getElementById('available-goods-tab').addEventListener('click', () => {
-		loadGoods(
+	let showMoreGoodsTab = document.getElementById('show-more-goods-tab');
+	showMoreGoodsTab.addEventListener('click', function () {
+		util.loadPage(
+			'api/goods',
 			1,
+			page,
 			document.getElementById('available-goods-tbody'),
-			document.getElementById('available-goods-pages')
+			createGoodsRow,
+			document.getElementById('show-more-goods-tab'),
+			document.getElementById('available-goods'),
+			'goods'
 		);
+		page++;
 	});
+	showMoreGoodsTab.click();
 });

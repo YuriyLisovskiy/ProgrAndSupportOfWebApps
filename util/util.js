@@ -68,7 +68,6 @@ let SendForbidden = (response, detail, json = true) => {
 	}
 };
 
-// Internal Server Error
 let SendInternalServerError = (response, detail, json = true) => {
 	if (json === true) {
 		sendJsonError(response, 'Internal Server Error', 500, detail);

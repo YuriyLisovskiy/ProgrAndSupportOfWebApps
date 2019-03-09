@@ -3,10 +3,15 @@
 	margin-top: 20px;
 }
 
-#save-goods {
+#save-goods,
+#save-promotion {
 	float: right;
 }
 
 #available-goods-pages {
 	margin-top: 10px;
+}
+
+.modal-title {
+	text-overflow: ellipsis;
 }

@@ -36,10 +36,23 @@ let createGoodsItem = (item) => {
 	cardText.appendChild(description);
 
 	let price = document.createElement('span');
-	price.className = 'badge badge-pill badge-success';
-	price.style.backgroundColor = '#517c1b';
+	price.className = 'badge badge-pill badge-danger';
 	price.style.float = 'left';
+	if (!item.discount_price) {
+		price.style.backgroundColor = '#517c1b';
+	} else {
+		price.style.textDecoration = 'line-through';
+	}
 	price.appendChild(document.createTextNode('$ ' + item['price']));
+
+	let discount_price = document.createElement('span');
+	if (item.discount_price) {
+		discount_price.className = 'badge badge-pill badge-danger';
+		discount_price.style.float = 'left';
+		discount_price.style.marginLeft = '10px';
+		discount_price.style.backgroundColor = '#517c1b';
+		discount_price.appendChild(document.createTextNode('$ ' + item.discount_price));
+	}
 
 	let btn = document.createElement('button');
 	btn.className = 'btn btn-success';
@@ -52,6 +65,9 @@ let createGoodsItem = (item) => {
 	cardBody.appendChild(cardTitle);
 	cardBody.appendChild(cardText);
 	cardBody.appendChild(price);
+	if (item.discount_price) {
+		cardBody.appendChild(discount_price);
+	}
 	cardBody.appendChild(btn);
 
 	let card = document.createElement('div');

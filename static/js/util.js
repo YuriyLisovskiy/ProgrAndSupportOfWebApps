@@ -104,6 +104,36 @@ let appendNoDataMessage = (root, message) => {
 	root.appendChild(listEmpty);
 };
 
+let refreshData = (data, container, createFunction, currPage, moreBtn, root, dataName) => {
+	if (data[dataName].length > 0) {
+		for (let i = 0; i < data[dataName].length; i++) {
+			container.appendChild(createFunction(data[dataName][i]));
+		}
+		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+			moreBtn.disabled = true;
+		}
+	} else {
+		appendNoDataMessage(root, 'No ' + dataName);
+	}
+};
+
+let loadPage = (url, limit, page, container, createFn, moreBtn, root, dataName) => {
+	sendAjax({
+		method: 'GET',
+		url: url,
+		params: {
+			page: page,
+			limit: limit
+		},
+		success: (data) => {
+			refreshData(data, container, createFn, page, moreBtn, root, dataName);
+		},
+		error: (data) => {
+			alert(data);
+		}
+	});
+};
+
 export default {
 	sendAjax: sendAjax,
 	setCookie: setCookie,
@@ -111,5 +141,7 @@ export default {
 	eraseCookie: eraseCookie,
 	userIsAuthenticated: userIsAuthenticated,
 	appendPages: appendPages,
-	appendNoDataMessage: appendNoDataMessage
+	appendNoDataMessage: appendNoDataMessage,
+	refreshData: refreshData,
+	loadPage: loadPage
 };

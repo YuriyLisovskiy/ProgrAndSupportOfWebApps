@@ -26,6 +26,20 @@
 		</ul>
 	</div>
 </nav>
+<div class="modal fade" id="promotionModal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" id="promotion-modal-title"></h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body" id="promotion-goods-modal-body"></div>
+			<div class="modal-footer">
+				<button type="button" class="btn" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="container">
 	<div id="alert"></div>
 	<h3 class="admin-title">Administration</h3>
@@ -60,7 +74,7 @@
 						</thead>
 						<tbody id="available-goods-tbody"></tbody>
 					</table>
-					<ul class="pagination justify-content-center" id="available-goods-pages"></ul>
+					<button class="btn btn-secondary" id="show-more-goods-tab">Load more...</button>
 				</div>
 				<div id="create-goods" class="container tab-pane fade"><br>
 					<form method="post">
@@ -107,10 +121,23 @@
 						</thead>
 						<tbody id="available-promotions-tbody"></tbody>
 					</table>
-					<ul class="pagination justify-content-center" id="available-promotions-pages"></ul>
+					<button class="btn btn-secondary" id="show-more-promotions-tab">Load more...</button>
 				</div>
 				<div id="create-promotion" class="container tab-pane fade"><br>
-					<h4>Coming soon...</h4>
+					<form method="post">
+						<div class="form-group row">
+							<label for="promotion-percentage" class="col-sm-6">Percentage:
+								<input type="number" max="100" step="0.1" name="percentage" class="form-control" id="promotion-percentage" placeholder="%..." required>
+							</label>
+							<label for="promotion-comment" class="col-sm-6">Comment:
+								<input type="text" name="comment" class="form-control" id="promotion-comment" placeholder="Type text...">
+							</label>
+						</div>
+						<div class="form-group row">
+							<h4>Goods | Coming soon...</h4>
+						</div>
+						<button type="submit" id="save-promotion" class="btn btn-success">Save</button>
+					</form>
 				</div>
 			</div>
 		</div>
