@@ -21,7 +21,8 @@ router.post('/api/login', AuthViews.Login);
 router.post('/api/register', AuthViews.Register);
 router.post('/api/token/verify', AuthViews.VerifyToken);
 
+router.put('/api/promotion/goods', AdministrationViews.PromotionGoods);
+
 router.delete('/api/goods', GoodsView.Goods);
-router.delete('/api/promotion/goods', AdministrationViews.PromotionGoods);
 
 module.exports = router;

@@ -1,4 +1,8 @@
 const jwt = require('jsonwebtoken');
+const settings = require('./settings');
+const dbModule = require('./db');
+
+let db = new dbModule.Db(settings.DbPath);
 
 let VerifyToken = (request, secret, success, failed) => {
 	let token = request.cookies['auth_token'];
@@ -13,6 +17,54 @@ let VerifyToken = (request, secret, success, failed) => {
 	} else {
 		failed({detail: 'header is undefined'});
 	}
+};
+
+let HandleRequest = ({request, response, get, post, put}) => {
+	let isJson = request.headers['accept'] === 'application/json';
+	if (request.method === 'GET') {
+		if (get) {
+			get(request, response);
+		} else {
+			SendNotAcceptable(response, null, isJson);
+		}
+	} else if (request.method === 'POST') {
+		if (post) {
+			post(request, response);
+		} else {
+			SendNotAcceptable(response, null, isJson);
+		}
+	} else if (request.method === 'PUT') {
+		if (put) {
+			put(request, response);
+		} else {
+			SendNotAcceptable(response, null, isJson);
+		}
+	} else {
+		SendNotAcceptable(response, null, isJson);
+	}
+};
+
+let HandleAuthRequest = ({request, response, get, post, put}) => {
+	VerifyToken(request, settings.SecretKey,
+		(data) => {
+			db.getUser(data.username, (user) => {
+				request['user'] = user;
+				HandleRequest({
+					request: request,
+					response: response,
+					get: get,
+					post: post,
+					put: put
+				});
+			}, () => {
+				SendNotFound(response, 'user is not found');
+			});
+		},
+		() => {
+			console.log('Could not verify token');
+			SendForbidden(response);
+		}
+	);
 };
 
 let sendJsonError = (response, err, code, detail) => {
@@ -98,5 +150,7 @@ module.exports = {
 	SendOk: SendOk,
 	SendCreated: SendCreated,
 	SendForbidden: SendForbidden,
-	SendInternalServerError: SendInternalServerError
+	SendInternalServerError: SendInternalServerError,
+	HandleJsonRequest: HandleRequest,
+	HandleAuthJsonRequest: HandleAuthRequest
 };

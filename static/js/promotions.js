@@ -152,7 +152,7 @@ let createPromotionGoodsRow = (item) => {
 	let tr = document.createElement('tr');
 	btnDelete.addEventListener('click', () => {
 		util.sendAjax({
-			method: 'DELETE',
+			method: 'PUT',
 			url: '/api/promotion/goods',
 			params: {
 				goods_code: item['code']

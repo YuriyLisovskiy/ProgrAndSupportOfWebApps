@@ -71,84 +71,66 @@ module.exports = {
 		);
 	},
 	Promotions: function (request, response) {
-		util.VerifyToken(request, settings.SecretKey,
-			(data) => {
-				db.getUser(data.username, (user) => {
-					if (request.method === 'GET') {
-						if (user.is_superuser) {
-							let page = request.query.page;
-							let limit = request.query.limit;
-							db.getPromotions(
-								(promotions) => {
-									util.SendOk(response, {
-										promotions: promotions.slice(limit * (page - 1), limit * page),
-										pages: Math.ceil(promotions.length / limit),
-									});
-								},
-								() => {
-									util.SendInternalServerError(response);
-								}
-							);
-						} else {
-							util.SendForbidden(response, null, false);
+		util.HandleAuthJsonRequest({
+			request: request,
+			response: response,
+			get: (request, response) => {
+				if (request.user.is_superuser) {
+					let page = request.query.page;
+					let limit = request.query.limit;
+					db.getPromotions(
+						(promotions) => {
+							util.SendOk(response, {
+								promotions: promotions.slice(limit * (page - 1), limit * page),
+								pages: Math.ceil(promotions.length / limit),
+							});
+						},
+						() => {
+							util.SendInternalServerError(response);
 						}
-					} else if (request.method === 'POST') {
-						postCreatePromotion(request, response);
-					} else {
-						util.SendNotAcceptable(response);
-					}
-				}, () => {
-					util.SendNotFound(response, null, false);
-				});
+					);
+				} else {
+					util.SendForbidden(response, null, false);
+				}
 			},
-			() => {
-				console.log('Could not verify token');
-				util.SendForbidden(response, null, false);
+			post: (request, response) => {
+				postCreatePromotion(request, response);
 			}
-		);
+		});
 	},
 	PromotionGoods: function (request, response) {
-		util.VerifyToken(request, settings.SecretKey,
-			(data) => {
-				db.getUser(data.username, (user) => {
-					if (request.method === 'GET') {
-						if (user.is_superuser) {
-							let page = request.query.page;
-							let limit = request.query.limit;
-							db.filterGoodsByPromotion(
-								request.query.promotion,
-								(goods) => {
-									let updGoods = goods.slice(limit * (page - 1), limit * page);
-									for (let i = 0; i < updGoods.length; i++) {
-										let discount = updGoods[i]['discount_price'];
-										let price = updGoods[i].price;
-										updGoods[i]['discount_price'] = Number(price - price * discount / 100).toFixed(2);
-									}
-									util.SendOk(response, {
-										goods: updGoods,
-										pages: Math.ceil(goods.length / limit),
-									});
-								},
-								() => {
-									util.SendInternalServerError(response);
-								}
-							);
-						} else {
-							util.SendForbidden(response, null, false);
+		util.HandleAuthJsonRequest({
+			request: request,
+			response: response,
+			get: (request, response) => {
+				if (request.user.is_superuser) {
+					let page = request.query.page;
+					let limit = request.query.limit;
+					db.filterGoodsByPromotion(
+						request.query.promotion,
+						(goods) => {
+							let updGoods = goods.slice(limit * (page - 1), limit * page);
+							for (let i = 0; i < updGoods.length; i++) {
+								let discount = updGoods[i]['discount_price'];
+								let price = updGoods[i].price;
+								updGoods[i]['discount_price'] = Number(price - price * discount / 100).toFixed(2);
+							}
+							util.SendOk(response, {
+								goods: updGoods,
+								pages: Math.ceil(goods.length / limit),
+							});
+						},
+						() => {
+							util.SendInternalServerError(response);
 						}
-					} else if (request.method === 'DELETE') {
-						removeGoodsFromPromotion(request, response);
-					} else {
-						util.SendNotAcceptable(response);
-					}
-				}, () => {
-					util.SendNotFound(response, null, false);
-				});
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			},
-			() => {
-				console.log('Could not verify token');
-				util.SendForbidden(response, null, false);
+			put: (request, response) => {
+				removeGoodsFromPromotion(request, response);
 			}
-		);
+		});
 	}
 };

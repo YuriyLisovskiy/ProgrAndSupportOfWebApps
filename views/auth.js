@@ -70,33 +70,19 @@ let Logout = (request, response) => {
 };
 
 let VerifyToken = (request, response) => {
-	if (request.method === 'POST') {
-		util.VerifyToken(request, settings.SecretKey,
-			(data) => {
-				db.getUser(data.username,
-					(user) => {
-						util.SendCreated(response, {
-							detail: 'token is verified',
-							user: {
-								username: user.username,
-								is_superuser: user.is_superuser
-							}
-						});
-					},
-					(err) => {
-						console.log(err);
-						util.SendNotFound(response, 'user does not exist');
-					}
-				);
-			},
-			() => {
-				console.log('Could not verify token');
-				util.SendForbidden(response, 'could not verify token');
-			}
-		);
-	} else {
-		util.SendNotAcceptable(response);
-	}
+	util.HandleAuthJsonRequest({
+		request: request,
+		response: response,
+		post: (request, response) => {
+			util.SendCreated(response, {
+				detail: 'token is verified',
+				user: {
+					username: request.user.username,
+					is_superuser: request.user.is_superuser
+				}
+			});
+		}
+	});
 };
 
 module.exports = {

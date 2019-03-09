@@ -17,6 +17,7 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 	let request = new XMLHttpRequest();
 	request.open(method, url + formattedParams, true);
 	request.setRequestHeader('Content-type', 'application/json');
+	request.setRequestHeader('Accept', 'application/json');
 	if (headers) {
 		for (let key in headers) {
 			request.setRequestHeader(key, headers[key]);
