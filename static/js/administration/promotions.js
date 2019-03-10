@@ -5,6 +5,8 @@ let modalGoodsPage = 1;
 let goodsSelectionPage = 1;
 
 let createPromotionRow = (item) => {
+	let tr = document.createElement('tr');
+
 	let id = document.createElement('th');
 	id.appendChild(document.createTextNode(item['id']));
 
@@ -50,11 +52,35 @@ let createPromotionRow = (item) => {
 	let btnViewPromotionGoodsTh = document.createElement('th');
 	btnViewPromotionGoodsTh.appendChild(btnViewPromotionGoods);
 
-	let tr = document.createElement('tr');
+	let btnDeletePromotion = document.createElement('button');
+	btnDeletePromotion.className = 'btn btn-danger';
+	btnDeletePromotion.type = 'button';
+	btnDeletePromotion.appendChild(document.createTextNode('Delete'));
+	btnDeletePromotion.addEventListener('click', function (event) {
+		util.sendAjax({
+			method: 'DELETE',
+			url: '/api/promotions',
+			params: {
+				promotion: item.id
+			},
+			success: () => {
+				event.target.removeEventListener('click', this);
+				tr.parentNode.removeChild(tr);
+			},
+			error: (err) => {
+				alert(err);
+			}
+		});
+	});
+
+	let btnDeletePromotionTh = document.createElement('th');
+	btnDeletePromotionTh.appendChild(btnDeletePromotion);
+
 	tr.appendChild(id);
 	tr.appendChild(percentage);
 	tr.appendChild(commentTh);
 	tr.appendChild(btnViewPromotionGoodsTh);
+	tr.appendChild(btnDeletePromotionTh);
 
 	return tr;
 };
@@ -183,7 +209,8 @@ let loadGoodsSelection = (selection) => {
 		url: '/api/goods',
 		params: {
 			page: goodsSelectionPage,
-			limit: 10
+			limit: 10,
+			withoutPromotions: true
 		},
 		success: (data) => {
 			if (data.goods.length > 0) {
@@ -211,6 +238,27 @@ let loadGoodsSelectionEvent = () => {
 	goodsSelectionPage++;
 };
 
+let createPromotion = (event) => {
+	event.preventDefault();
+	util.sendAjax({
+		method: 'POST',
+		url: '/api/promotions',
+		params: {
+			percentage: document.getElementById('promotion-percentage').value,
+			comment: document.getElementById('promotion-comment').value,
+			goods: Array.from(
+				document.getElementById('select-goods').selectedOptions
+			).map(option => parseInt(option.value))
+		},
+		success: (data) => {
+			alert(data);
+		},
+		error: (err) => {
+			alert('Unable to create promotion: ' + JSON.parse(err).detail);
+		}
+	});
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 	let showMorePromotionsTab = document.getElementById('show-more-promotions-tab');
 	showMorePromotionsTab.addEventListener('click', function () {
@@ -233,4 +281,25 @@ document.addEventListener('DOMContentLoaded', () => {
 		'click', loadGoodsSelectionEvent
 	);
 	btn.click();
+
+	document.getElementById('select-goods-reload-btn').addEventListener('click', () => {
+		goodsSelectionPage = 1;
+		let selection = document.getElementById('select-goods');
+		selection.innerHTML = '';
+		loadGoodsSelection(selection);
+		goodsSelectionPage++;
+		if (!document.getElementById('select-goods-load-more-btn')) {
+			let button = document.createElement('button');
+			button.setAttribute('type', 'button');
+			button.className = 'btn btn-secondary';
+			button.id = 'select-goods-load-more-btn';
+			button.appendChild(document.createTextNode('Load more'));
+			button.addEventListener(
+				'click', loadGoodsSelectionEvent
+			);
+			document.getElementById('select-goods-form-group').appendChild(button);
+		}
+	});
+
+	document.getElementById('create-promotion-form').addEventListener('submit', createPromotion);
 });

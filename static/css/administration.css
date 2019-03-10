@@ -22,3 +22,17 @@
 	padding: 0 5px 0 5px;
 	font-size: 14px;
 }
+
+.container {
+	margin-bottom: 20px;
+}
+
+#select-goods-reload-btn {
+	height: 30px;
+	width: 30px;
+	padding: 3px 5px 5px;
+}
+
+.fa-gear {
+	font-size: 20px;
+}

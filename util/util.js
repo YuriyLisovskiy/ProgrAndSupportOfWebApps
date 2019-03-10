@@ -47,7 +47,7 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 	}
 };
 
-let HandleAuthRequest = ({request, response, get, post, put}) => {
+let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 	response['send_json'] = request.headers['accept'] === 'application/json';
 	VerifyToken(request, settings.SecretKey,
 		(data) => {
@@ -58,7 +58,8 @@ let HandleAuthRequest = ({request, response, get, post, put}) => {
 					response: response,
 					get: get,
 					post: post,
-					put: put
+					put: put,
+					delete_
 				});
 			}, () => {
 				SendNotFound(response, 'User is not found');

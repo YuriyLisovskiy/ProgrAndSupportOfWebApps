@@ -4,49 +4,6 @@ const settings = require('../util/settings');
 
 let db = settings.Db;
 
-let postCreateGoods = (request, response) => {
-	let data = request.body;
-	let promotionId = null;
-	if (data.promotion !== 'none') {
-		promotionId = data.promotion;
-	}
-	db.createGoods(data.title, parseFloat(data.price), data.description, promotionId,
-		() => {
-			response.redirect('/administration');
-		},
-		(err) => {
-			console.log(err);
-			util.SendBadRequest(response, err);
-		}
-	);
-};
-
-let postCreatePromotion = (request, response) => {
-
-};
-
-let removeGoodsFromPromotion = (request, response) => {
-	let id = request.body.goods_code;
-	if (id) {
-		db.getGoodsById(id,
-			(item) => {
-				item.promotion = null;
-				db.updateGoods(item,
-					() => {
-						util.SendSuccessResponse(response, 201, item)
-					},
-					() => {
-						util.SendInternalServerError(response, 'Unable to update goods');
-					}
-				);
-			},
-			() => {
-				util.SendNotFound(response, 'Goods not found')
-			}
-		);
-	}
-};
-
 module.exports = {
 	Administration: function (request, response) {
 		util.HandleAuthRequest({
@@ -60,7 +17,20 @@ module.exports = {
 				}
 			},
 			post: (request, response) => {
-				postCreateGoods(request, response);
+				let data = request.body;
+				let promotionId = null;
+				if (data.promotion !== 'none') {
+					promotionId = data.promotion;
+				}
+				db.createGoods(data.title, parseFloat(data.price), data.description, promotionId,
+					() => {
+						response.redirect('/administration');
+					},
+					(err) => {
+						console.log(err);
+						util.SendBadRequest(response, err);
+					}
+				);
 			}
 		});
 	},
@@ -88,7 +58,49 @@ module.exports = {
 				}
 			},
 			post: (request, response) => {
-				postCreatePromotion(request, response);
+				db.createPromotion(request.body.percentage, request.body.comment,
+					(promotionId) => {
+						for (let i = 0; i < request.body.goods.length; i++) {
+							db.getGoodsById(request.body.goods[i],
+								(item) => {
+									item.promotion = promotionId;
+									db.updateGoods(item, () => {}, (err) => {console.log(err);});
+								},
+								(err) => {
+									console.log(err);
+								}
+							);
+						}
+						util.SendSuccessResponse(response, 201, 'Promotion is created');
+					},
+					(err) => {
+						console.log(err);
+						util.SendInternalServerError(response, 'unable to create promotion');
+					}
+				)
+			},
+			delete_: (request, response) => {
+				db.deletePromotion(
+					request.body.promotion,
+					() => {
+						util.SendSuccessResponse(response, 201, 'Promotion is deleted');
+						db.filterGoodsByPromotion(
+							request.body.promotion,
+							(goods) => {
+								for (let i = 0; i < goods.length; i++) {
+									goods[i].promotion = null;
+									db.updateGoods(goods[i], () => {}, (err) => {console.log(err);});
+								}
+							},
+							(err) => {
+								console.log(err);
+							}
+						);
+					},
+					(err) => {
+						console.log(err);
+					}
+				)
 			}
 		});
 	},
@@ -123,7 +135,25 @@ module.exports = {
 				}
 			},
 			put: (request, response) => {
-				removeGoodsFromPromotion(request, response);
+				let id = request.body.goods_code;
+				if (id) {
+					db.getGoodsById(id,
+						(item) => {
+							item.promotion = null;
+							db.updateGoods(item,
+								() => {
+									util.SendSuccessResponse(response, 201, item)
+								},
+								() => {
+									util.SendInternalServerError(response, 'Unable to update goods');
+								}
+							);
+						},
+						() => {
+							util.SendNotFound(response, 'Goods not found')
+						}
+					);
+				}
 			}
 		});
 	}

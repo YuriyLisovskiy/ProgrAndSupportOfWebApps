@@ -18,8 +18,9 @@ let createGoodsRow = (item) => {
 	description.appendChild(pDescription);
 
 	let btnDelete = document.createElement('button');
-	btnDelete.className = 'btn btn-danger';
+	btnDelete.className = 'dropdown-item';
 	btnDelete.type = 'button';
+	btnDelete.style.cursor = 'pointer';
 	btnDelete.appendChild(document.createTextNode('Delete'));
 	let tr = document.createElement('tr');
 	btnDelete.addEventListener('click', () => {
@@ -38,12 +39,31 @@ let createGoodsRow = (item) => {
 		});
 	});
 
-	let btnDeleteTh = document.createElement('th');
-	btnDeleteTh.appendChild(btnDelete);
+	let btnToggleGear = document.createElement('i');
+	btnToggleGear.className = 'fa fa-gear';
+
+	let btnToggle = document.createElement('button');
+	btnToggle.setAttribute('type', 'button');
+	btnToggle.className = 'btn btn-default dropdown-toggle';
+	btnToggle.setAttribute('data-toggle', 'dropdown');
+	btnToggle.appendChild(btnToggleGear);
+
+	let div = document.createElement('div');
+	div.className = 'dropdown-menu';
+	div.appendChild(btnDelete);
+
+	let manageBtnGroup = document.createElement('div');
+	manageBtnGroup.className = 'btn-group';
+	manageBtnGroup.appendChild(btnToggle);
+	manageBtnGroup.appendChild(div);
+
+	let manage = document.createElement('th');
+	manage.appendChild(manageBtnGroup);
+
 	tr.appendChild(title);
 	tr.appendChild(price);
 	tr.appendChild(description);
-	tr.appendChild(btnDeleteTh);
+	tr.appendChild(manage);
 
 	return tr;
 };

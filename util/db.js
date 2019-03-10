@@ -88,12 +88,19 @@ CREATE TABLE Goods (
 		);
 	}
 
-	getGoods(success, failed) {
+	getAllGoods(success, failed) {
 		this.getData(`
 			SELECT Goods.code, Goods.title, Goods.price, Goods.description, Promotions.percentage as discount_percentage
 			FROM Goods
 			LEFT JOIN Promotions ON Promotions.id = Goods.promotion
 		`, [], success, failed);
+	}
+
+	getGoodsWithoutPromotions(success, failed) {
+		this.getData(
+			`	SELECT code, title, price, description FROM Goods WHERE promotion IS NULL;`,
+			[], success, failed
+		);
 	}
 
 	getGoodsById(id, success, failed) {
@@ -167,6 +174,30 @@ CREATE TABLE Goods (
 
 	getPromotions(success, failed) {
 		this.getData(`SELECT id, percentage, comment FROM Promotions;`, [], success, failed);
+	}
+
+	createPromotion(percentage, comment, success, failed) {
+		let query = this.db.prepare(`INSERT INTO Promotions (percentage, comment) VALUES (?, ?);`);
+		query.run([percentage, comment], function(err) {
+				if (err) {
+					failed(err);
+				} else {
+					success(this.lastID);
+				}
+			}
+		);
+	}
+
+	deletePromotion(id, success, failed) {
+		let query = this.db.prepare(`DELETE FROM Promotions WHERE id = ?`);
+		query.run([id], (err) => {
+				if (err) {
+					failed(err);
+				} else {
+					success();
+				}
+			}
+		);
 	}
 }
 
