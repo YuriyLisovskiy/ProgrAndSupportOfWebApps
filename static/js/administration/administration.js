@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	showMoreGoodsTab.addEventListener('click', function () {
 		util.loadPage(
 			'api/goods',
-			1,
+			10,
 			page,
 			document.getElementById('available-goods-tbody'),
 			createGoodsRow,

@@ -1,9 +1,8 @@
 const path = require('path');
 const util = require('../util/util');
 const settings = require('../util/settings');
-const dbModule = require('../util/db');
 
-let db = new dbModule.Db(settings.DbPath);
+let db = settings.Db;
 
 let postCreateGoods = (request, response) => {
 	let data = request.body;
@@ -13,7 +12,7 @@ let postCreateGoods = (request, response) => {
 		},
 		(err) => {
 			console.log(err);
-			util.SendBadRequest(response, err, false);
+			util.SendBadRequest(response, err);
 		}
 	);
 };
@@ -30,7 +29,7 @@ let removeGoodsFromPromotion = (request, response) => {
 				item.promotion = null;
 				db.updateGoods(item,
 					() => {
-						util.SendCreated(response, item)
+						util.SendSuccessResponse(response, 201, item)
 					},
 					() => {
 						util.SendInternalServerError(response, 'Unable to update goods');
@@ -46,32 +45,23 @@ let removeGoodsFromPromotion = (request, response) => {
 
 module.exports = {
 	Administration: function (request, response) {
-		util.VerifyToken(request, settings.SecretKey,
-			(data) => {
-				db.getUser(data.username, (user) => {
-					if (request.method === 'GET') {
-						if (user.is_superuser) {
-							response.sendFile(path.resolve('static/html/administration.html'));
-						} else {
-							util.SendForbidden(response, null, false);
-						}
-					} else if (request.method === 'POST') {
-						postCreateGoods(request, response);
-					} else {
-						util.SendNotAcceptable(response);
-					}
-				}, () => {
-					util.SendNotFound(response, null, false);
-				});
+		util.HandleAuthRequest({
+			request: request,
+			response: response,
+			get: (request, response) => {
+				if (request.user.is_superuser) {
+					response.sendFile(path.resolve('static/html/administration.html'));
+				} else {
+					util.SendForbidden(response);
+				}
 			},
-			() => {
-				console.log('Could not verify token');
-				util.SendForbidden(response, null, false);
+			post: (request, response) => {
+				postCreateGoods(request, response);
 			}
-		);
+		});
 	},
 	Promotions: function (request, response) {
-		util.HandleAuthJsonRequest({
+		util.HandleAuthRequest({
 			request: request,
 			response: response,
 			get: (request, response) => {
@@ -80,7 +70,7 @@ module.exports = {
 					let limit = request.query.limit;
 					db.getPromotions(
 						(promotions) => {
-							util.SendOk(response, {
+							util.SendSuccessResponse(response, 200, {
 								promotions: promotions.slice(limit * (page - 1), limit * page),
 								pages: Math.ceil(promotions.length / limit),
 							});
@@ -90,7 +80,7 @@ module.exports = {
 						}
 					);
 				} else {
-					util.SendForbidden(response, null, false);
+					util.SendForbidden(response);
 				}
 			},
 			post: (request, response) => {
@@ -99,7 +89,7 @@ module.exports = {
 		});
 	},
 	PromotionGoods: function (request, response) {
-		util.HandleAuthJsonRequest({
+		util.HandleAuthRequest({
 			request: request,
 			response: response,
 			get: (request, response) => {
@@ -115,7 +105,7 @@ module.exports = {
 								let price = updGoods[i].price;
 								updGoods[i]['discount_price'] = Number(price - price * discount / 100).toFixed(2);
 							}
-							util.SendOk(response, {
+							util.SendSuccessResponse(response, 200, {
 								goods: updGoods,
 								pages: Math.ceil(goods.length / limit),
 							});

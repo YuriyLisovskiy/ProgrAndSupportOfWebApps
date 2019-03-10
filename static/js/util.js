@@ -24,7 +24,7 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 		}
 	}
 	request.addEventListener('load', () => {
-		if (request.status === 200 || request.status === 201) {
+		if (request.status < 400) {
 			success(JSON.parse(request.responseText));
 		} else {
 			error(request.responseText);

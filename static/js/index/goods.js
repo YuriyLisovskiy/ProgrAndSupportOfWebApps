@@ -1,9 +1,15 @@
-import util from './util.js'
+import util from '../util.js'
+
+let goodsPage = 1;
 
 let createGoodsItem = (item) => {
 	let img = document.createElement('img');
 	img.className = 'card-img-top';
-	img.src = 'https://vignette.wikia.nocookie.net/cartoonsserbia/images/4/42/Image-not-available_1.jpg/revision/latest?cb=20180603222946';
+	if (item.image) {
+		img.src = item.image;
+	} else {
+		img.src = 'https://vignette.wikia.nocookie.net/cartoonsserbia/images/4/42/Image-not-available_1.jpg/revision/latest?cb=20180603222946';
+	}
 	img.alt = 'Goods image';
 	img.style.height = '310px';
 
@@ -80,66 +86,32 @@ let createGoodsItem = (item) => {
 	return card;
 };
 
-let updateGoods = (data, container, pages) => {
-	container.innerHTML = '';
-	pages.innerHTML = '';
-	for (let i = 0; i < data['pages']; i++) {
-		let button = document.createElement('button');
-		button.className = 'page-link';
-		button.appendChild(document.createTextNode(i + 1));
-		button.addEventListener('click', function () {
-			loadGoods(i + 1, container, pages);
-		});
-		let li = document.createElement('li');
-		li.className = 'page-item';
-		li.appendChild(button);
-		pages.appendChild(li);
-	}
-	for (let i = 0; i < data['goods'].length; i++) {
-		let row = document.createElement('div');
-		row.className = 'row mt-20';
-		let j = i;
-		for (j = i; j < i + 3 && j < data['goods'].length; j++) {
-			row.appendChild(createGoodsItem(data['goods'][j]));
-		}
-		i += j - 1;
-		container.appendChild(row);
-	}
-};
-
-let initGoodsList = (root) => {
-	let container = document.createElement('div');
-	container.className = 'container';
-	container.style.paddingTop = '20px';
+document.addEventListener('DOMContentLoaded', function() {
+	let container = document.getElementById('container');
 
 	let ulPages = document.createElement('ul');
 	ulPages.className = 'pagination justify-content-center';
 	ulPages.style.marginTop = '10px';
+	ulPages.id = 'goods-list';
 
-	loadGoods(1, container, ulPages);
-
-	root.innerHTML = '';
-	root.appendChild(container);
-	root.appendChild(ulPages);
-};
-
-let loadGoods = (page, container, pages) => {
-	util.sendAjax({
-		method: 'GET',
-		url: '/api/goods',
-		params: {
-			page: page,
-			limit: 3
-		},
-		success: (data) => {
-			updateGoods(data, container, pages);
-		},
-		error: (data) => {
-			alert(data);
-		}
+	let moreBtn = document.createElement('button');
+	moreBtn.className = 'btn btn-secondary';
+	moreBtn.appendChild(document.createTextNode('Load more...'));
+	moreBtn.addEventListener('click', function() {
+		util.loadPage(
+			'/api/goods',
+			10,
+			goodsPage,
+			ulPages,
+			createGoodsItem,
+			this,
+			container,
+			'goods'
+		);
+		goodsPage++;
 	});
-};
+	moreBtn.click();
 
-document.addEventListener('DOMContentLoaded', function() {
-	initGoodsList(document.getElementById('root'));
+	container.appendChild(ulPages);
+	container.appendChild(moreBtn);
 });

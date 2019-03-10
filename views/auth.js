@@ -1,64 +1,67 @@
-const util = require('../util/util');
 const crypto = require('crypto');
-const dbModule = require('../util/db');
 const jwt = require('jsonwebtoken');
+const util = require('../util/util');
 const settings = require('../util/settings');
 
-let db = new dbModule.Db(settings.DbPath);
+let db = settings.Db;
 
 let Login = (request, response) => {
-	if (request.method === 'POST') {
-		let credentials = request.body;
-		db.getUser(credentials.username,
-			(user) => {
-				let pwd_hash = crypto.createHash('sha256').update(credentials.password).digest('base64');
-				if (pwd_hash === user.password) {
-					jwt.sign(user, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
-						if (err) {
-							console.log(err);
-							util.SendBadRequest(response);
-						} else {
-							util.SendCreated(response, {
-								key: token,
-								user: {
-									username: user.username,
-									is_superuser: user.is_superuser
-								}
-							});
-						}
-					});
-				} else {
-					util.SendBadRequest(response, 'invalid credentials');
+	util.HandleRequest({
+		request: request,
+		response: response,
+		post: (request, response) => {
+			let credentials = request.body;
+			db.getUser(credentials.username,
+				(user) => {
+					let pwd_hash = crypto.createHash('sha256').update(credentials.password).digest('base64');
+					if (pwd_hash === user.password) {
+						jwt.sign(user, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
+							if (err) {
+								console.log(err);
+								util.SendBadRequest(response);
+							} else {
+								util.SendSuccessResponse(response, 200, {
+									key: token,
+									user: {
+										username: user.username,
+										is_superuser: user.is_superuser
+									}
+								});
+							}
+						});
+					} else {
+						util.SendBadRequest(response, 'invalid credentials');
+					}
+				},
+				(err) => {
+					console.log(err);
+					util.SendNotFound(response, 'User does not exist');
 				}
-			},
-			(err) => {
-				console.log(err);
-				util.SendNotFound(response, 'user does not exist');
-			}
-		);
-	} else {
-		util.SendNotAcceptable(response);
-	}
+			);
+		}
+	});
 };
 
 let Register = (request, response) => {
-	if (request.method === 'POST') {
-		let credentials = request.body;
-		db.createUser(
-			credentials.username,
-			credentials.email,
-			credentials.password,
-			() => {
-				util.SendCreated(response, {detail: 'registration is successful'});
-			},
-			(err) => {
-				console.log(err);
-				util.SendBadRequest(response, err);
-			}
-		);
-	} else {
-		util.SendNotAcceptable(response);
-	}
+	util.HandleRequest({
+		request: request,
+		response: response,
+		post: (request, response) => {
+			let credentials = request.body;
+			db.createUser(
+				credentials.username,
+				credentials.email,
+				credentials.password,
+				() => {
+					util.SendSuccessResponse(response, 201, {detail: 'registration is successful'});
+				},
+				(err) => {
+					console.log(err);
+					util.SendBadRequest(response, err);
+				}
+			);
+		}
+	});
 };
 
 let Logout = (request, response) => {
@@ -70,11 +73,11 @@ let Logout = (request, response) => {
 };
 
 let VerifyToken = (request, response) => {
-	util.HandleAuthJsonRequest({
+	util.HandleAuthRequest({
 		request: request,
 		response: response,
 		post: (request, response) => {
-			util.SendCreated(response, {
+			util.SendSuccessResponse(response, 200, {
 				detail: 'token is verified',
 				user: {
 					username: request.user.username,
