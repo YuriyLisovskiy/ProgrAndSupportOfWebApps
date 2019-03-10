@@ -1,7 +1,8 @@
-import util from '/static/js/util.js';
+import util from '../util.js';
 
 let page = 1;
 let modalGoodsPage = 1;
+let goodsSelectionPage = 1;
 
 let createPromotionRow = (item) => {
 	let id = document.createElement('th');
@@ -176,6 +177,40 @@ let createPromotionGoodsRow = (item) => {
 	return tr;
 };
 
+let loadGoodsSelection = (selection) => {
+	util.sendAjax({
+		method: 'GET',
+		url: '/api/goods',
+		params: {
+			page: goodsSelectionPage,
+			limit: 10
+		},
+		success: (data) => {
+			if (data.goods.length > 0) {
+				for (let i = 0; i < data.goods.length; i++) {
+					let option = document.createElement('option');
+					option.value = data.goods[i].code;
+					option.appendChild(document.createTextNode(data.goods[i].title));
+					selection.appendChild(option);
+				}
+			}
+			if (data.pages < goodsSelectionPage) {
+				let btn = document.getElementById('select-goods-load-more-btn');
+				btn.removeEventListener('click', loadGoodsSelectionEvent);
+				btn.parentNode.removeChild(btn);
+			}
+		},
+		error: (data) => {
+			alert(data);
+		}
+	});
+};
+
+let loadGoodsSelectionEvent = () => {
+	loadGoodsSelection(document.getElementById('select-goods'));
+	goodsSelectionPage++;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 	let showMorePromotionsTab = document.getElementById('show-more-promotions-tab');
 	showMorePromotionsTab.addEventListener('click', function () {
@@ -192,4 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		page++;
 	});
 	showMorePromotionsTab.click();
+
+	let btn = document.getElementById('select-goods-load-more-btn');
+	btn.addEventListener(
+		'click', loadGoodsSelectionEvent
+	);
+	btn.click();
 });

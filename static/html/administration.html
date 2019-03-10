@@ -94,6 +94,12 @@
 								<textarea rows="7" name="description" class="form-control" id="goods-description"></textarea>
 							</label>
 						</div>
+						<div class="form-group row">
+							<label for="select-promotion">Promotion:</label>
+							<select class="form-control" id="select-promotion" name="promotion">
+								<option value="none">None</option>
+							</select>
+						</div>
 						<button type="submit" id="save-goods" class="btn btn-success">Save</button>
 					</form>
 				</div>
@@ -134,7 +140,10 @@
 							</label>
 						</div>
 						<div class="form-group row">
-							<h4>Goods | Coming soon...</h4>
+							<label for="select-goods">Goods:
+								<button type="button" class="btn btn-secondary" id="select-goods-load-more-btn">load more</button>
+							</label>
+							<select size="10" multiple class="form-control" id="select-goods"></select>
 						</div>
 						<button type="submit" id="save-promotion" class="btn btn-success">Save</button>
 					</form>

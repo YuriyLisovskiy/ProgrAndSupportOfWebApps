@@ -80,21 +80,6 @@ let userIsAuthenticated = (success, failed) => {
 	});
 };
 
-let appendPages = (pages, pagesContainer, container, eventListener) => {
-	for (let i = 0; i < pages; i++) {
-		let button = document.createElement('button');
-		button.className = 'page-link';
-		button.appendChild(document.createTextNode(i + 1));
-		button.addEventListener('click', function () {
-			eventListener(i + 1, container, pagesContainer);
-		});
-		let li = document.createElement('li');
-		li.className = 'page-item';
-		li.appendChild(button);
-		pagesContainer.appendChild(li);
-	}
-};
-
 let appendNoDataMessage = (root, message) => {
 	let listEmpty = document.createElement('h4');
 	listEmpty.style.textAlign = 'center';
@@ -111,14 +96,14 @@ let refreshData = (data, container, createFunction, currPage, moreBtn, root, dat
 			container.appendChild(createFunction(data[dataName][i]));
 		}
 		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
-			moreBtn.disabled = true;
+			moreBtn.parentNode.removeChild(moreBtn);
 		}
 	} else {
 		appendNoDataMessage(root, 'No ' + dataName);
 	}
 };
 
-let loadPage = (url, limit, page, container, createFn, moreBtn, root, dataName) => {
+let loadPage = (url, limit, page, container, createFn, moreBtn, root, dataName, refreshFunction = refreshData) => {
 	sendAjax({
 		method: 'GET',
 		url: url,
@@ -127,7 +112,7 @@ let loadPage = (url, limit, page, container, createFn, moreBtn, root, dataName) 
 			limit: limit
 		},
 		success: (data) => {
-			refreshData(data, container, createFn, page, moreBtn, root, dataName);
+			refreshFunction(data, container, createFn, page, moreBtn, root, dataName);
 		},
 		error: (data) => {
 			alert(data);
@@ -141,7 +126,6 @@ export default {
 	getCookie: getCookie,
 	eraseCookie: eraseCookie,
 	userIsAuthenticated: userIsAuthenticated,
-	appendPages: appendPages,
 	appendNoDataMessage: appendNoDataMessage,
 	refreshData: refreshData,
 	loadPage: loadPage

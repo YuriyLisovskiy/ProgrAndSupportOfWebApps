@@ -120,9 +120,9 @@ CREATE TABLE Goods (
 		);
 	}
 
-	createGoods(title, price, description, success, failed) {
-		let query = this.db.prepare(`INSERT INTO Goods (title, price, description) VALUES (?, ?, ?);`);
-		query.run([title, price, description], (err) => {
+	createGoods(title, price, description, promotion, success, failed) {
+		let query = this.db.prepare(`INSERT INTO Goods (title, price, description, promotion) VALUES (?, ?, ?, ?);`);
+		query.run([title, price, description, promotion], (err) => {
 				if (err) {
 					failed(err);
 				} else {

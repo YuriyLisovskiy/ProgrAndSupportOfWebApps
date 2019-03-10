@@ -86,32 +86,43 @@ let createGoodsItem = (item) => {
 	return card;
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-	let container = document.getElementById('container');
+let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, dataName) => {
+	if (data[dataName].length > 0) {
+		let row = document.createElement('div');
+		row.className = 'row';
+		for (let i = 0; i < data[dataName].length; i++) {
+			row.appendChild(createFunction(data[dataName][i]));
+		}
+		root.appendChild(row);
+		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+			moreBtn.parentNode.removeChild(moreBtn);
+		}
+	} else {
+		appendNoDataMessage(root, 'No ' + dataName);
+	}
+};
 
-	let ulPages = document.createElement('ul');
-	ulPages.className = 'pagination justify-content-center';
-	ulPages.style.marginTop = '10px';
-	ulPages.id = 'goods-list';
-
+let onLoadedEvent = function () {
 	let moreBtn = document.createElement('button');
 	moreBtn.className = 'btn btn-secondary';
 	moreBtn.appendChild(document.createTextNode('Load more...'));
 	moreBtn.addEventListener('click', function() {
 		util.loadPage(
 			'/api/goods',
-			10,
+			9,
 			goodsPage,
-			ulPages,
+			null,
 			createGoodsItem,
 			this,
-			container,
-			'goods'
+			document.getElementById('inner-container'),
+			'goods',
+			refreshGoods
 		);
 		goodsPage++;
 	});
 	moreBtn.click();
+	document.getElementById('container').appendChild(moreBtn);
+	document.removeEventListener('DOMContentLoaded', onLoadedEvent);
+};
 
-	container.appendChild(ulPages);
-	container.appendChild(moreBtn);
-});
+document.addEventListener('DOMContentLoaded', onLoadedEvent);

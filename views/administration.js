@@ -6,7 +6,11 @@ let db = settings.Db;
 
 let postCreateGoods = (request, response) => {
 	let data = request.body;
-	db.createGoods(data.title, parseFloat(data.price), data.description,
+	let promotionId = null;
+	if (data.promotion !== 'none') {
+		promotionId = data.promotion;
+	}
+	db.createGoods(data.title, parseFloat(data.price), data.description, promotionId,
 		() => {
 			response.redirect('/administration');
 		},

@@ -15,3 +15,10 @@
 .modal-title {
 	text-overflow: ellipsis;
 }
+
+#select-goods-load-more-btn {
+	height: 20px;
+	width: 90px;
+	padding: 0 5px 0 5px;
+	font-size: 14px;
+}

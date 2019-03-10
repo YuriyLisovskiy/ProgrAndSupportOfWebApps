@@ -1,4 +1,4 @@
-import util from '/static/js/util.js';
+import util from '../util.js';
 
 let page = 1;
 
@@ -48,6 +48,31 @@ let createGoodsRow = (item) => {
 	return tr;
 };
 
+let loadPromotionsSelection = () => {
+	util.sendAjax({
+		method: 'GET',
+		url: '/api/promotions',
+		params: {
+			page: 1,
+			limit: 100
+		},
+		success: (data) => {
+			if (data.promotions.length > 0) {
+				let list = document.getElementById('select-promotion');
+				for (let i = 0; i < data['promotions'].length; i++) {
+					let option = document.createElement('option');
+					option.value = data['promotions'][i].id;
+					option.appendChild(document.createTextNode(data['promotions'][i].comment));
+					list.appendChild(option);
+				}
+			}
+		},
+		error: (data) => {
+			alert(data);
+		}
+	});
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById('btn-logout').addEventListener('click', function () {
 		util.eraseCookie('auth_token');
@@ -67,4 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		page++;
 	});
 	showMoreGoodsTab.click();
+
+	loadPromotionsSelection();
 });
