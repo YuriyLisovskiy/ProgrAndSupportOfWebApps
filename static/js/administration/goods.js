@@ -3,8 +3,12 @@ import util from '../util.js';
 let page = 1;
 
 let createGoodsRow = (item) => {
+	let pTitle = document.createElement('p');
+	pTitle.style.textOverflow = 'word-wrap';
+	pTitle.appendChild(document.createTextNode(item['title']));
+
 	let title = document.createElement('th');
-	title.appendChild(document.createTextNode(item['title']));
+	title.appendChild(pTitle);
 
 	let price = document.createElement('th');
 	price.appendChild(document.createTextNode('$ ' + item['price']));
@@ -17,13 +21,20 @@ let createGoodsRow = (item) => {
 	let description = document.createElement('th');
 	description.appendChild(pDescription);
 
+	let btnEdit = document.createElement('a');
+	btnEdit.className = 'dropdown-item';
+	btnEdit.style.cursor = 'pointer';
+	btnEdit.href = '/administration/goods/' + item.code + '/edit';
+	btnEdit.appendChild(document.createTextNode('Edit'));
+
+	let tr = document.createElement('tr');
+
 	let btnDelete = document.createElement('button');
 	btnDelete.className = 'dropdown-item';
 	btnDelete.type = 'button';
 	btnDelete.style.cursor = 'pointer';
 	btnDelete.appendChild(document.createTextNode('Delete'));
-	let tr = document.createElement('tr');
-	btnDelete.addEventListener('click', () => {
+	btnDelete.addEventListener('click', function btnDeleteListener(event) {
 		util.sendAjax({
 			method: 'DELETE',
 			url: '/api/goods',
@@ -31,6 +42,7 @@ let createGoodsRow = (item) => {
 				goods_code: item['code']
 			},
 			success: () => {
+				event.target.removeEventListener('click', btnDeleteListener);
 				tr.parentNode.removeChild(tr);
 			},
 			error: (data) => {
@@ -50,6 +62,7 @@ let createGoodsRow = (item) => {
 
 	let div = document.createElement('div');
 	div.className = 'dropdown-menu';
+	div.appendChild(btnEdit);
 	div.appendChild(btnDelete);
 
 	let manageBtnGroup = document.createElement('div');
@@ -68,37 +81,36 @@ let createGoodsRow = (item) => {
 	return tr;
 };
 
-let loadPromotionsSelection = () => {
-	util.sendAjax({
-		method: 'GET',
-		url: '/api/promotions',
-		params: {
-			page: 1,
-			limit: 100
-		},
-		success: (data) => {
-			if (data.promotions.length > 0) {
-				let list = document.getElementById('select-promotion');
-				for (let i = 0; i < data['promotions'].length; i++) {
-					let option = document.createElement('option');
-					option.value = data['promotions'][i].id;
-					option.appendChild(document.createTextNode(data['promotions'][i].comment));
-					list.appendChild(option);
-				}
-			}
-		},
-		error: (data) => {
-			alert(data);
-		}
-	});
-};
+document.addEventListener('DOMContentLoaded', function domLoadedListener() {
+	let active_tab = util.getCookie('active_tab');
 
-document.addEventListener('DOMContentLoaded', () => {
+	let goodsDiv = document.getElementById('goods');
+	let goodsTab = document.getElementById('goods-tab');
+	goodsTab.addEventListener('click', () => {
+		util.setCookie('active_tab', 'goods', 1);
+	});
+
+	let promotionsDiv = document.getElementById('promotions');
+	let promotionsTab = document.getElementById('promotions-tab');
+	promotionsTab.addEventListener('click', () => {
+		util.setCookie('active_tab', 'promotions', 1);
+	});
+
+	if (active_tab && active_tab === 'promotions') {
+		goodsDiv.className += ' fade';
+		promotionsDiv.className += ' active show';
+		promotionsTab.className += ' active show';
+	} else {
+		goodsDiv.className += ' active show';
+		goodsTab.className += ' active show';
+		promotionsDiv.className += ' fade';
+	}
+
 	document.getElementById('btn-logout').addEventListener('click', function () {
 		util.eraseCookie('auth_token');
 	});
 	let showMoreGoodsTab = document.getElementById('show-more-goods-tab');
-	showMoreGoodsTab.addEventListener('click', function () {
+	showMoreGoodsTab.addEventListener('click', function showMoreGoodsListener() {
 		util.loadPage(
 			'api/goods',
 			10,
@@ -107,11 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			createGoodsRow,
 			document.getElementById('show-more-goods-tab'),
 			document.getElementById('available-goods'),
+			showMoreGoodsListener,
 			'goods'
 		);
 		page++;
 	});
 	showMoreGoodsTab.click();
 
-	loadPromotionsSelection();
+	document.removeEventListener('DOMContentLoaded', domLoadedListener);
 });

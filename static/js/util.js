@@ -90,12 +90,13 @@ let appendNoDataMessage = (root, message) => {
 	root.appendChild(listEmpty);
 };
 
-let refreshData = (data, container, createFunction, currPage, moreBtn, root, dataName) => {
+let refreshData = (data, container, createFunction, currPage, moreBtn, root, listener, dataName) => {
 	if (data[dataName].length > 0) {
 		for (let i = 0; i < data[dataName].length; i++) {
 			container.appendChild(createFunction(data[dataName][i]));
 		}
 		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+			moreBtn.removeEventListener('click', listener);
 			moreBtn.parentNode.removeChild(moreBtn);
 		}
 	} else {
@@ -103,7 +104,7 @@ let refreshData = (data, container, createFunction, currPage, moreBtn, root, dat
 	}
 };
 
-let loadPage = (url, limit, page, container, createFn, moreBtn, root, dataName, refreshFunction = refreshData) => {
+let loadPage = (url, limit, page, container, createFn, moreBtn, root, listener, dataName, refreshFunction = refreshData) => {
 	sendAjax({
 		method: 'GET',
 		url: url,
@@ -112,7 +113,7 @@ let loadPage = (url, limit, page, container, createFn, moreBtn, root, dataName, 
 			limit: limit
 		},
 		success: (data) => {
-			refreshFunction(data, container, createFn, page, moreBtn, root, dataName);
+			refreshFunction(data, container, createFn, page, moreBtn, root, listener, dataName);
 		},
 		error: (data) => {
 			alert(data);

@@ -1,16 +1,18 @@
 let express = require('express');
 let router = express.Router();
 
-let IndexView = require('../views/index');
-let GoodsView = require('../views/goods');
-let AuthViews = require('../views/auth');
-let AdministrationViews = require('../views/administration');
+let IndexView = require('../handlers');
+let GoodsView = require('../handlers/goods');
+let AuthViews = require('../handlers/auth');
+let AdministrationViews = require('../handlers/administration');
 
 router.get('/', IndexView.Index);
 router.get('/logout', AuthViews.Logout);
 router.get('/administration', AdministrationViews.Administration);
+router.get('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
 
 router.post('/administration', AdministrationViews.Administration);
+router.post('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
 
 
 router.get('/api/promotions', AdministrationViews.Promotions);

@@ -17,10 +17,11 @@
 }
 
 #select-goods-load-more-btn {
-	height: 20px;
+	height: 30px;
 	width: 90px;
 	padding: 0 5px 0 5px;
 	font-size: 14px;
+	margin-top: 10px;
 }
 
 .container {
@@ -31,6 +32,8 @@
 	height: 30px;
 	width: 30px;
 	padding: 3px 5px 5px;
+	margin-top: 10px;
+	margin-right: 5px;
 }
 
 .fa-gear {

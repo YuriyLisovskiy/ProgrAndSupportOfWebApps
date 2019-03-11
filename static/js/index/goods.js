@@ -79,14 +79,14 @@ let createGoodsItem = (item) => {
 	let card = document.createElement('div');
 	card.className = 'card ml-5 mb-5';
 	card.style.width = '300px';
-	card.style.height = '460px';
+	card.style.height = 'auto';
 	card.appendChild(img);
 	card.appendChild(cardBody);
 
 	return card;
 };
 
-let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, dataName) => {
+let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, listener, dataName) => {
 	if (data[dataName].length > 0) {
 		let row = document.createElement('div');
 		row.className = 'row';
@@ -95,6 +95,7 @@ let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, da
 		}
 		root.appendChild(row);
 		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+			moreBtn.removeEventListener('click', listener);
 			moreBtn.parentNode.removeChild(moreBtn);
 		}
 	} else {
@@ -105,8 +106,8 @@ let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, da
 let onLoadedEvent = function () {
 	let moreBtn = document.createElement('button');
 	moreBtn.className = 'btn btn-secondary';
-	moreBtn.appendChild(document.createTextNode('Load more...'));
-	moreBtn.addEventListener('click', function() {
+	moreBtn.appendChild(document.createTextNode('Load more'));
+	moreBtn.addEventListener('click', function moreBtnListener() {
 		util.loadPage(
 			'/api/goods',
 			9,
@@ -115,6 +116,7 @@ let onLoadedEvent = function () {
 			createGoodsItem,
 			this,
 			document.getElementById('inner-container'),
+			moreBtnListener,
 			'goods',
 			refreshGoods
 		);

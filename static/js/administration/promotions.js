@@ -4,88 +4,49 @@ let page = 1;
 let modalGoodsPage = 1;
 let goodsSelectionPage = 1;
 
-let createPromotionRow = (item) => {
+let createPromotionGoodsRow = (item) => {
+	let title = document.createElement('th');
+	title.appendChild(document.createTextNode(item['title']));
+
+	let price = document.createElement('th');
+	price.appendChild(document.createTextNode('$ ' + item['price']));
+
+	let priceWithDiscount = document.createElement('th');
+	priceWithDiscount.appendChild(document.createTextNode('$ ' + item['discount_price']));
+
+	let btnDelete = document.createElement('button');
+	btnDelete.className = 'btn btn-danger';
+	btnDelete.type = 'button';
+	btnDelete.appendChild(document.createTextNode('Remove'));
 	let tr = document.createElement('tr');
-
-	let id = document.createElement('th');
-	id.appendChild(document.createTextNode(item['id']));
-
-	let percentage = document.createElement('th');
-	percentage.appendChild(document.createTextNode('-' + item['percentage'] + '%'));
-
-	let comment = document.createElement('p');
-	comment.style.textOverflow = 'word-wrap';
-	comment.style.width = '100%';
-	comment.appendChild(document.createTextNode(item['comment']));
-
-	let commentTh = document.createElement('th');
-	commentTh.appendChild(comment);
-
-	let btnViewPromotionGoods = document.createElement('button');
-	btnViewPromotionGoods.className = 'btn btn-success';
-	btnViewPromotionGoods.type = 'button';
-	btnViewPromotionGoods.appendChild(document.createTextNode('View Goods'));
-	btnViewPromotionGoods.setAttribute('data-toggle', 'modal');
-	btnViewPromotionGoods.setAttribute('data-target', '#promotionModal');
-	btnViewPromotionGoods.addEventListener('click', () => {
+	btnDelete.addEventListener('click', function removeFromPromotionFromGoods() {
 		util.sendAjax({
-			method: 'GET',
+			method: 'PUT',
 			url: '/api/promotion/goods',
 			params: {
-				promotion: item['id'],
-				page: 1,
-				limit: 5
+				goods_code: item['code']
 			},
-			success: (data) => {
-				modalGoodsPage = 1;
-				let root = document.getElementById('promotion-goods-modal-body');
-				root.innerHTML = '';
-				root.appendChild(createTableBase(data['goods'].length > 0, data, item, root));
-				refreshPromotionGoods(data, item, root);
-				modalGoodsPage++;
+			success: () => {
+				btnDelete.removeEventListener('click', removeFromPromotionFromGoods);
+				tr.parentNode.removeChild(tr);
 			},
 			error: (data) => {
 				alert(data);
 			}
 		});
 	});
-	let btnViewPromotionGoodsTh = document.createElement('th');
-	btnViewPromotionGoodsTh.appendChild(btnViewPromotionGoods);
 
-	let btnDeletePromotion = document.createElement('button');
-	btnDeletePromotion.className = 'btn btn-danger';
-	btnDeletePromotion.type = 'button';
-	btnDeletePromotion.appendChild(document.createTextNode('Delete'));
-	btnDeletePromotion.addEventListener('click', function (event) {
-		util.sendAjax({
-			method: 'DELETE',
-			url: '/api/promotions',
-			params: {
-				promotion: item.id
-			},
-			success: () => {
-				event.target.removeEventListener('click', this);
-				tr.parentNode.removeChild(tr);
-			},
-			error: (err) => {
-				alert(err);
-			}
-		});
-	});
-
-	let btnDeletePromotionTh = document.createElement('th');
-	btnDeletePromotionTh.appendChild(btnDeletePromotion);
-
-	tr.appendChild(id);
-	tr.appendChild(percentage);
-	tr.appendChild(commentTh);
-	tr.appendChild(btnViewPromotionGoodsTh);
-	tr.appendChild(btnDeletePromotionTh);
+	let btnDeleteTh = document.createElement('th');
+	btnDeleteTh.appendChild(btnDelete);
+	tr.appendChild(title);
+	tr.appendChild(price);
+	tr.appendChild(priceWithDiscount);
+	tr.appendChild(btnDeleteTh);
 
 	return tr;
 };
 
-let refreshPromotionGoods = (data, item, root) => {
+function refreshPromotionGoods(data, item, root) {
 	let pmt = document.getElementById('promotion-modal-title');
 	pmt.innerText = '-' + item['percentage'] + '% | ' + item['comment'];
 	util.refreshData(
@@ -95,9 +56,10 @@ let refreshPromotionGoods = (data, item, root) => {
 		modalGoodsPage,
 		document.getElementById('show-more-promotion-goods-btn'),
 		root,
+		refreshPromotionGoods,
 		'goods'
 	);
-};
+}
 
 let createTableBase = (appendBtn = false, data, item, root) => {
 	let title = document.createElement('th');
@@ -162,43 +124,83 @@ let createTableBase = (appendBtn = false, data, item, root) => {
 	return result;
 };
 
-let createPromotionGoodsRow = (item) => {
-	let title = document.createElement('th');
-	title.appendChild(document.createTextNode(item['title']));
-
-	let price = document.createElement('th');
-	price.appendChild(document.createTextNode('$ ' + item['price']));
-
-	let priceWithDiscount = document.createElement('th');
-	priceWithDiscount.appendChild(document.createTextNode('$ ' + item['discount_price']));
-
-	let btnDelete = document.createElement('button');
-	btnDelete.className = 'btn btn-danger';
-	btnDelete.type = 'button';
-	btnDelete.appendChild(document.createTextNode('Remove'));
+let createPromotionRow = (item) => {
 	let tr = document.createElement('tr');
-	btnDelete.addEventListener('click', () => {
+
+	let id = document.createElement('th');
+	id.appendChild(document.createTextNode(item['id']));
+
+	let percentage = document.createElement('th');
+	percentage.appendChild(document.createTextNode('-' + item['percentage'] + '%'));
+
+	let comment = document.createElement('p');
+	comment.style.textOverflow = 'word-wrap';
+	comment.style.width = '100%';
+	comment.appendChild(document.createTextNode(item['comment']));
+
+	let commentTh = document.createElement('th');
+	commentTh.appendChild(comment);
+
+	let btnViewPromotionGoods = document.createElement('button');
+	btnViewPromotionGoods.className = 'btn btn-success';
+	btnViewPromotionGoods.type = 'button';
+	btnViewPromotionGoods.appendChild(document.createTextNode('View'));
+	btnViewPromotionGoods.setAttribute('data-toggle', 'modal');
+	btnViewPromotionGoods.setAttribute('data-target', '#promotionModal');
+	btnViewPromotionGoods.addEventListener('click', () => {
 		util.sendAjax({
-			method: 'PUT',
+			method: 'GET',
 			url: '/api/promotion/goods',
 			params: {
-				goods_code: item['code']
+				promotion: item['id'],
+				page: 1,
+				limit: 5
 			},
-			success: () => {
-				tr.parentNode.removeChild(tr);
+			success: (data) => {
+				modalGoodsPage = 1;
+				let root = document.getElementById('promotion-goods-modal-body');
+				root.innerHTML = '';
+				root.appendChild(createTableBase(data['goods'].length > 0, data, item, root));
+				refreshPromotionGoods(data, item, root);
+				modalGoodsPage++;
 			},
 			error: (data) => {
 				alert(data);
 			}
 		});
 	});
+	let btnViewPromotionGoodsTh = document.createElement('th');
+	btnViewPromotionGoodsTh.appendChild(btnViewPromotionGoods);
 
-	let btnDeleteTh = document.createElement('th');
-	btnDeleteTh.appendChild(btnDelete);
-	tr.appendChild(title);
-	tr.appendChild(price);
-	tr.appendChild(priceWithDiscount);
-	tr.appendChild(btnDeleteTh);
+	let btnDeletePromotion = document.createElement('button');
+	btnDeletePromotion.className = 'btn btn-danger';
+	btnDeletePromotion.type = 'button';
+	btnDeletePromotion.appendChild(document.createTextNode('Delete'));
+	btnDeletePromotion.addEventListener('click', function deletePromotionEvent(event) {
+		util.sendAjax({
+			method: 'DELETE',
+			url: '/api/promotions',
+			params: {
+				promotion: item.id
+			},
+			success: () => {
+				event.target.removeEventListener('click', deletePromotionEvent);
+				tr.parentNode.removeChild(tr);
+			},
+			error: (err) => {
+				alert(err);
+			}
+		});
+	});
+
+	let btnDeletePromotionTh = document.createElement('th');
+	btnDeletePromotionTh.appendChild(btnDeletePromotion);
+
+	tr.appendChild(id);
+	tr.appendChild(percentage);
+	tr.appendChild(commentTh);
+	tr.appendChild(btnViewPromotionGoodsTh);
+	tr.appendChild(btnDeletePromotionTh);
 
 	return tr;
 };
@@ -221,10 +223,24 @@ let loadGoodsSelection = (selection) => {
 					selection.appendChild(option);
 				}
 			}
+			let btn = document.getElementById('select-goods-load-more-btn');
 			if (data.pages < goodsSelectionPage) {
-				let btn = document.getElementById('select-goods-load-more-btn');
-				btn.removeEventListener('click', loadGoodsSelectionEvent);
-				btn.parentNode.removeChild(btn);
+				if (btn) {
+					btn.removeEventListener('click', loadGoodsSelectionEvent);
+					btn.parentNode.removeChild(btn);
+				}
+			} else {
+				if (!btn) {
+					let button = document.createElement('button');
+					button.setAttribute('type', 'button');
+					button.className = 'btn btn-secondary';
+					button.id = 'select-goods-load-more-btn';
+					button.appendChild(document.createTextNode('Load more'));
+					button.addEventListener(
+						'click', loadGoodsSelectionEvent
+					);
+					document.getElementById('select-goods-form-group').appendChild(button);
+				}
 			}
 		},
 		error: (data) => {
@@ -238,30 +254,9 @@ let loadGoodsSelectionEvent = () => {
 	goodsSelectionPage++;
 };
 
-let createPromotion = (event) => {
-	event.preventDefault();
-	util.sendAjax({
-		method: 'POST',
-		url: '/api/promotions',
-		params: {
-			percentage: document.getElementById('promotion-percentage').value,
-			comment: document.getElementById('promotion-comment').value,
-			goods: Array.from(
-				document.getElementById('select-goods').selectedOptions
-			).map(option => parseInt(option.value))
-		},
-		success: (data) => {
-			alert(data);
-		},
-		error: (err) => {
-			alert('Unable to create promotion: ' + JSON.parse(err).detail);
-		}
-	});
-};
-
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 	let showMorePromotionsTab = document.getElementById('show-more-promotions-tab');
-	showMorePromotionsTab.addEventListener('click', function () {
+	showMorePromotionsTab.addEventListener('click', function showMorePromotionsListener() {
 		util.loadPage(
 			'api/promotions',
 			10,
@@ -270,36 +265,22 @@ document.addEventListener('DOMContentLoaded', () => {
 			createPromotionRow,
 			this,
 			document.getElementById('available-promotions'),
+			showMorePromotionsListener,
 			'promotions'
 		);
 		page++;
 	});
 	showMorePromotionsTab.click();
 
-	let btn = document.getElementById('select-goods-load-more-btn');
-	btn.addEventListener(
-		'click', loadGoodsSelectionEvent
-	);
-	btn.click();
-
-	document.getElementById('select-goods-reload-btn').addEventListener('click', () => {
+	let reloadGoodsBtn = document.getElementById('select-goods-reload-btn');
+	reloadGoodsBtn.addEventListener('click', () => {
 		goodsSelectionPage = 1;
 		let selection = document.getElementById('select-goods');
 		selection.innerHTML = '';
 		loadGoodsSelection(selection);
 		goodsSelectionPage++;
-		if (!document.getElementById('select-goods-load-more-btn')) {
-			let button = document.createElement('button');
-			button.setAttribute('type', 'button');
-			button.className = 'btn btn-secondary';
-			button.id = 'select-goods-load-more-btn';
-			button.appendChild(document.createTextNode('Load more'));
-			button.addEventListener(
-				'click', loadGoodsSelectionEvent
-			);
-			document.getElementById('select-goods-form-group').appendChild(button);
-		}
 	});
+	reloadGoodsBtn.click();
 
-	document.getElementById('create-promotion-form').addEventListener('submit', createPromotion);
+	document.removeEventListener('DOMContentLoaded', domLoadedListener);
 });

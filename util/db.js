@@ -113,7 +113,7 @@ CREATE TABLE Goods (
 		});
 	}
 
-	filterGoodsByPromotion(promotion, success, failed) {
+	joinGoodsAndPromotion(promotion, success, failed) {
 		this.getData(
 			`
 					SELECT Goods.code, Goods.title, Goods.price, Promotions.percentage as discount_price
@@ -127,13 +127,26 @@ CREATE TABLE Goods (
 		);
 	}
 
+	filterGoodsByPromotion(promotion, success, failed) {
+		this.getData(
+			`
+					SELECT code, title, price, description, image, promotion
+				  	FROM Goods
+					WHERE promotion = ?;
+				  `,
+			[promotion],
+			success,
+			failed
+		);
+	}
+
 	createGoods(title, price, description, promotion, success, failed) {
 		let query = this.db.prepare(`INSERT INTO Goods (title, price, description, promotion) VALUES (?, ?, ?, ?);`);
-		query.run([title, price, description, promotion], (err) => {
+		query.run([title, price, description, promotion], function(err) {
 				if (err) {
 					failed(err);
 				} else {
-					success();
+					success(this.lastID);
 				}
 			}
 		);
@@ -150,11 +163,11 @@ CREATE TABLE Goods (
 				goodsItem.image,
 				goodsItem.promotion,
 				goodsItem.code
-			], (err) => {
+			], function(err) {
 				if (err) {
 					failed(err);
 				} else {
-					success();
+					success(this.lastID);
 				}
 			}
 		);
@@ -190,11 +203,11 @@ CREATE TABLE Goods (
 
 	deletePromotion(id, success, failed) {
 		let query = this.db.prepare(`DELETE FROM Promotions WHERE id = ?`);
-		query.run([id], (err) => {
+		query.run([id], function(err) {
 				if (err) {
 					failed(err);
 				} else {
-					success();
+					success(this.lastID);
 				}
 			}
 		);

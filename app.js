@@ -10,8 +10,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use('/static', express.static('static'));
+app.set('view engine', 'jade');
 
+app.use('/static', express.static('static'));
 app.use('/', router);
 
 app.use(function(req, res){

@@ -11,7 +11,15 @@ module.exports = {
 			response: response,
 			get: (request, response) => {
 				if (request.user.is_superuser) {
-					response.sendFile(path.resolve('static/html/administration.html'));
+					db.getPromotions(
+						(promotions) => {
+							response.render('administration', {promotions: promotions});
+						},
+						(err) => {
+							console.log(err);
+							util.SendInternalServerError(response);
+						}
+					);
 				} else {
 					util.SendForbidden(response);
 				}
@@ -29,6 +37,78 @@ module.exports = {
 					(err) => {
 						console.log(err);
 						util.SendBadRequest(response, err);
+					}
+				);
+			}
+		});
+	},
+	EditGoods: function (request, response) {
+		util.HandleAuthRequest({
+			request: request,
+			response: response,
+			get: (request, response) => {
+				if (request.user.is_superuser) {
+					db.getGoodsById(
+						request.params[0],
+						(item) => {
+							if (item) {
+								db.getPromotions(
+									(promotions) => {
+										response.render('edit_goods', {item: item, promotions: promotions});
+									},
+									(err) => {
+										console.log(err);
+										util.SendInternalServerError(response);
+									}
+								);
+							} else {
+								util.SendNotFound(response);
+							}
+						},
+						(err) => {
+							console.log(err);
+							util.SendInternalServerError(response);
+						}
+					);
+				} else {
+					util.SendForbidden(response);
+				}
+			},
+			post: (request, response) => {
+				let data = request.body;
+				db.getGoodsById(
+					request.params[0],
+					(item) => {
+						if (item) {
+							/*
+							if (data.image === '') {
+								item.image = null;
+							} else {
+								item.image = data.image;
+							}
+							*/
+							item.title = data.title;
+							item.price = data.price;
+							item.image = null;
+							item.description = data.description;
+							if (data.promotion !== 'none') {
+								item.promotion = data.promotion;
+							}
+							db.updateGoods(
+								item,
+								() => {response.redirect('/administration');},
+								(err) => {
+									console.log(err);
+									util.SendInternalServerError(response);
+								}
+							);
+						} else {
+							util.SendNotFound(response);
+						}
+					},
+					(err) => {
+						console.log(err);
+						util.SendInternalServerError(response);
 					}
 				);
 			}
@@ -60,18 +140,22 @@ module.exports = {
 			post: (request, response) => {
 				db.createPromotion(request.body.percentage, request.body.comment,
 					(promotionId) => {
-						for (let i = 0; i < request.body.goods.length; i++) {
-							db.getGoodsById(request.body.goods[i],
-								(item) => {
-									item.promotion = promotionId;
-									db.updateGoods(item, () => {}, (err) => {console.log(err);});
-								},
-								(err) => {
-									console.log(err);
-								}
-							);
+						if (request.body.goods) {
+							for (let i = 0; i < request.body.goods.length; i++) {
+								db.getGoodsById(request.body.goods[i],
+									(item) => {
+										item.promotion = promotionId;
+										db.updateGoods(item, () => {}, (err) => {
+											console.log(err);
+										});
+									},
+									(err) => {
+										console.log(err);
+									}
+								);
+							}
 						}
-						util.SendSuccessResponse(response, 201, 'Promotion is created');
+						response.redirect('/administration');
 					},
 					(err) => {
 						console.log(err);
@@ -112,7 +196,7 @@ module.exports = {
 				if (request.user.is_superuser) {
 					let page = request.query.page;
 					let limit = request.query.limit;
-					db.filterGoodsByPromotion(
+					db.joinGoodsAndPromotion(
 						request.query.promotion,
 						(goods) => {
 							let updGoods = goods.slice(limit * (page - 1), limit * page);
