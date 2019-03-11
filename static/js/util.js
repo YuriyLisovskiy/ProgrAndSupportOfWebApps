@@ -17,13 +17,14 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 	let request = new XMLHttpRequest();
 	request.open(method, url + formattedParams, true);
 	request.setRequestHeader('Content-type', 'application/json');
+	request.setRequestHeader('Accept', 'application/json');
 	if (headers) {
 		for (let key in headers) {
 			request.setRequestHeader(key, headers[key]);
 		}
 	}
 	request.addEventListener('load', () => {
-		if (request.status === 200 || request.status === 201) {
+		if (request.status < 400) {
 			success(JSON.parse(request.responseText));
 		} else {
 			error(request.responseText);
@@ -79,10 +80,54 @@ let userIsAuthenticated = (success, failed) => {
 	});
 };
 
+let appendNoDataMessage = (root, message) => {
+	let listEmpty = document.createElement('h4');
+	listEmpty.style.textAlign = 'center';
+	listEmpty.style.marginTop = '10px';
+	listEmpty.className = 'text-muted';
+	listEmpty.appendChild(document.createTextNode(message));
+	root.innerHTML = '';
+	root.appendChild(listEmpty);
+};
+
+let refreshData = (data, container, createFunction, currPage, moreBtn, root, listener, dataName) => {
+	if (data[dataName].length > 0) {
+		for (let i = 0; i < data[dataName].length; i++) {
+			container.appendChild(createFunction(data[dataName][i]));
+		}
+		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+			moreBtn.removeEventListener('click', listener);
+			moreBtn.parentNode.removeChild(moreBtn);
+		}
+	} else {
+		appendNoDataMessage(root, 'No ' + dataName);
+	}
+};
+
+let loadPage = (url, limit, page, container, createFn, moreBtn, root, listener, dataName, refreshFunction = refreshData) => {
+	sendAjax({
+		method: 'GET',
+		url: url,
+		params: {
+			page: page,
+			limit: limit
+		},
+		success: (data) => {
+			refreshFunction(data, container, createFn, page, moreBtn, root, listener, dataName);
+		},
+		error: (data) => {
+			alert(data);
+		}
+	});
+};
+
 export default {
 	sendAjax: sendAjax,
 	setCookie: setCookie,
 	getCookie: getCookie,
 	eraseCookie: eraseCookie,
-	userIsAuthenticated: userIsAuthenticated
+	userIsAuthenticated: userIsAuthenticated,
+	appendNoDataMessage: appendNoDataMessage,
+	refreshData: refreshData,
+	loadPage: loadPage
 };
