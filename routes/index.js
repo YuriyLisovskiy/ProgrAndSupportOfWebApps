@@ -10,9 +10,11 @@ router.get('/', IndexView.Index);
 router.get('/logout', AuthViews.Logout);
 router.get('/administration', AdministrationViews.Administration);
 router.get('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
+router.get('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);
 
 router.post('/administration', AdministrationViews.Administration);
 router.post('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
+router.post('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);
 
 
 router.get('/api/promotions', AdministrationViews.Promotions);

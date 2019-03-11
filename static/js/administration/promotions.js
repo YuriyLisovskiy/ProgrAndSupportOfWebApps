@@ -18,7 +18,9 @@ let createPromotionGoodsRow = (item) => {
 	btnDelete.className = 'btn btn-danger';
 	btnDelete.type = 'button';
 	btnDelete.appendChild(document.createTextNode('Remove'));
+
 	let tr = document.createElement('tr');
+
 	btnDelete.addEventListener('click', function removeFromPromotionFromGoods() {
 		util.sendAjax({
 			method: 'PUT',
@@ -38,6 +40,7 @@ let createPromotionGoodsRow = (item) => {
 
 	let btnDeleteTh = document.createElement('th');
 	btnDeleteTh.appendChild(btnDelete);
+
 	tr.appendChild(title);
 	tr.appendChild(price);
 	tr.appendChild(priceWithDiscount);
@@ -172,8 +175,14 @@ let createPromotionRow = (item) => {
 	let btnViewPromotionGoodsTh = document.createElement('th');
 	btnViewPromotionGoodsTh.appendChild(btnViewPromotionGoods);
 
+	let btnEdit = document.createElement('a');
+	btnEdit.className = 'dropdown-item';
+	btnEdit.style.cursor = 'pointer';
+	btnEdit.href = '/administration/promotions/' + item.id + '/edit';
+	btnEdit.appendChild(document.createTextNode('Edit'));
+
 	let btnDeletePromotion = document.createElement('button');
-	btnDeletePromotion.className = 'btn btn-danger';
+	btnDeletePromotion.className = 'dropdown-item';
 	btnDeletePromotion.type = 'button';
 	btnDeletePromotion.appendChild(document.createTextNode('Delete'));
 	btnDeletePromotion.addEventListener('click', function deletePromotionEvent(event) {
@@ -193,14 +202,33 @@ let createPromotionRow = (item) => {
 		});
 	});
 
-	let btnDeletePromotionTh = document.createElement('th');
-	btnDeletePromotionTh.appendChild(btnDeletePromotion);
+	let btnToggleGear = document.createElement('i');
+	btnToggleGear.className = 'fa fa-gear';
+
+	let btnToggle = document.createElement('button');
+	btnToggle.setAttribute('type', 'button');
+	btnToggle.className = 'btn btn-default dropdown-toggle';
+	btnToggle.setAttribute('data-toggle', 'dropdown');
+	btnToggle.appendChild(btnToggleGear);
+
+	let div = document.createElement('div');
+	div.className = 'dropdown-menu';
+	div.appendChild(btnEdit);
+	div.appendChild(btnDeletePromotion);
+
+	let manageBtnGroup = document.createElement('div');
+	manageBtnGroup.className = 'btn-group';
+	manageBtnGroup.appendChild(btnToggle);
+	manageBtnGroup.appendChild(div);
+
+	let manage = document.createElement('th');
+	manage.appendChild(manageBtnGroup);
 
 	tr.appendChild(id);
 	tr.appendChild(percentage);
 	tr.appendChild(commentTh);
 	tr.appendChild(btnViewPromotionGoodsTh);
-	tr.appendChild(btnDeletePromotionTh);
+	tr.appendChild(manage);
 
 	return tr;
 };

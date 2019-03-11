@@ -1,4 +1,3 @@
-const path = require('path');
 const util = require('../util/util');
 const settings = require('../util/settings');
 
@@ -87,10 +86,16 @@ module.exports = {
 								item.image = data.image;
 							}
 							*/
-							item.title = data.title;
-							item.price = data.price;
+							if (data.title) {
+								item.title = data.title;
+							}
+							if (data.price) {
+								item.price = data.price;
+							}
 							item.image = null;
-							item.description = data.description;
+							if (data.description) {
+								item.description = data.description;
+							}
 							if (data.promotion !== 'none') {
 								item.promotion = data.promotion;
 							}
@@ -185,6 +190,62 @@ module.exports = {
 						console.log(err);
 					}
 				)
+			}
+		});
+	},
+	EditPromotion: function (request, response) {
+		util.HandleAuthRequest({
+			request: request,
+			response: response,
+			get: (request, response) => {
+				if (request.user.is_superuser) {
+					db.getPromotionById(
+						request.params[0],
+						(item) => {
+							if (item) {
+								response.render('edit_promotion', {item: item});
+							} else {
+								util.SendNotFound(response);
+							}
+						},
+						(err) => {
+							console.log(err);
+							util.SendInternalServerError(response);
+						}
+					);
+				} else {
+					util.SendForbidden(response);
+				}
+			},
+			post: (request, response) => {
+				let data = request.body;
+				db.getPromotionById(
+					request.params[0],
+					(item) => {
+						if (item) {
+							if (data.percentage) {
+								item.percentage = data.percentage;
+							}
+							if (data.comment) {
+								item.comment = data.comment;
+							}
+							db.updatePromotion(
+								item,
+								() => {response.redirect('/administration');},
+								(err) => {
+									console.log(err);
+									util.SendInternalServerError(response);
+								}
+							);
+						} else {
+							util.SendNotFound(response);
+						}
+					},
+					(err) => {
+						console.log(err);
+						util.SendInternalServerError(response);
+					}
+				);
 			}
 		});
 	},

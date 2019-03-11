@@ -201,6 +201,34 @@ CREATE TABLE Goods (
 		);
 	}
 
+	getPromotionById(id, success, failed) {
+		this.db.get(`SELECT * FROM Promotions WHERE id = ?`, [id], (err, data) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success(data);
+			}
+		});
+	}
+
+	updatePromotion(item, success, failed) {
+		let query = this.db.prepare(
+			`UPDATE Promotions SET percentage = ?, comment = ? WHERE id = ?;`
+		);
+		query.run([
+				item.percentage,
+				item.comment,
+				item.id
+			], function(err) {
+				if (err) {
+					failed(err);
+				} else {
+					success(this.lastID);
+				}
+			}
+		);
+	}
+
 	deletePromotion(id, success, failed) {
 		let query = this.db.prepare(`DELETE FROM Promotions WHERE id = ?`);
 		query.run([id], function(err) {
