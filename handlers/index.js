@@ -6,7 +6,7 @@ module.exports = {
 			request: request,
 			response: response,
 			get: (request, response) => {
-				response.render('index');
+				util.Render(request, response, 'index');
 			}
 		});
 	}

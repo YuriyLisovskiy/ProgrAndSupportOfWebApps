@@ -19,31 +19,58 @@ let VerifyToken = (request, secret, success, failed) => {
 };
 
 let HandleRequest = ({request, response, get, post, put, delete_}) => {
-	if (!response.hasOwnProperty('send_json')) {
-		response['send_json'] = request.headers['accept'] === 'application/json';
-	}
-	if (request.method === 'GET') {
-		if (get) {
-			get(request, response);
+	let finished = () => {
+		delete request.user.password;
+
+		if (!response.hasOwnProperty('send_json')) {
+			response['send_json'] = request.headers['accept'] === 'application/json';
+		}
+		if (request.method === 'GET') {
+			if (get) {
+				get(request, response);
+			} else {
+				SendNotAcceptable(response);
+			}
+		} else if (request.method === 'POST') {
+			if (post) {
+				post(request, response);
+			} else {
+				SendNotAcceptable(response);
+			}
+		} else if (request.method === 'PUT') {
+			if (put) {
+				put(request, response);
+			} else {
+				SendNotAcceptable(response);
+			}
+		} else if (delete_) {
+			delete_(request, response);
 		} else {
 			SendNotAcceptable(response);
 		}
-	} else if (request.method === 'POST') {
-		if (post) {
-			post(request, response);
-		} else {
-			SendNotAcceptable(response);
-		}
-	} else if (request.method === 'PUT') {
-		if (put) {
-			put(request, response);
-		} else {
-			SendNotAcceptable(response);
-		}
-	} else if (delete_) {
-		delete_(request, response);
+	};
+	if (!request.user) {
+		request.user = {
+			is_authenticated: false
+		};
+		VerifyToken(request, settings.SecretKey,
+			function (data) {
+				db.getUser(data.username, (user) => {
+					request['user'] = user;
+					request['user']['is_authenticated'] = true;
+					finished();
+				}, (err) => {
+					console.log(err);
+					finished();
+				});
+			},
+			(err) => {
+				console.log(err);
+				finished();
+			}
+		);
 	} else {
-		SendNotAcceptable(response);
+		finished();
 	}
 };
 
@@ -53,14 +80,10 @@ let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 		(data) => {
 			db.getUser(data.username, (user) => {
 				request['user'] = user;
-				HandleRequest({
-					request: request,
-					response: response,
-					get: get,
-					post: post,
-					put: put,
-					delete_
-				});
+				request.user['is_authenticated'] = true;
+				HandleRequest(
+					{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
+				);
 			}, () => {
 				SendNotFound(response, 'User is not found');
 			});
@@ -121,8 +144,16 @@ let SendSuccessResponse = (response, code, content) => {
 	response.send(responseData);
 };
 
+let Render = (request, response, template, context = null) => {
+	if (!context) {
+		context = {};
+	}
+	context['user'] = request.user;
+	response.render(template, context);
+};
+
 module.exports = {
-	VerifyToken: VerifyToken,
+//	VerifyToken: VerifyToken,
 	SendNotAcceptable: SendNotAcceptable,
 	SendNotFound: SendNotFound,
 	SendBadRequest: SendBadRequest,
@@ -130,5 +161,6 @@ module.exports = {
 	SendInternalServerError: SendInternalServerError,
 	HandleRequest: HandleRequest,
 	HandleAuthRequest: HandleAuthRequest,
-	SendSuccessResponse: SendSuccessResponse
+	SendSuccessResponse: SendSuccessResponse,
+	Render: Render
 };
