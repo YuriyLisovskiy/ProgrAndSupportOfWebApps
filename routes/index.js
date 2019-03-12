@@ -5,9 +5,11 @@ let IndexView = require('../handlers');
 let GoodsView = require('../handlers/goods');
 let AuthViews = require('../handlers/auth');
 let AdministrationViews = require('../handlers/administration');
+let CartViews = require('../handlers/cart');
 
 router.get('/', IndexView.Index);
 router.get('/logout', AuthViews.Logout);
+router.get('/cart', CartViews.Cart);
 router.get('/administration', AdministrationViews.Administration);
 router.get('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
 router.get('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);

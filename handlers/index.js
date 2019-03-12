@@ -1,4 +1,3 @@
-const path = require('path');
 const util = require('../util/util');
 
 module.exports = {
@@ -7,7 +6,7 @@ module.exports = {
 			request: request,
 			response: response,
 			get: (request, response) => {
-				response.sendFile(path.resolve('static/html/index.html'));
+				response.render('index');
 			}
 		});
 	}

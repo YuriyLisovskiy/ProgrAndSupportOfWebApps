@@ -18,29 +18,29 @@ let credentialsAreValid = ({email, username, password}, success, error) => {
 	}
 };
 
-let setLogoutBtn = (nav) => {
+let createLinkButton = (title, href, setMargin, listener = null, id = null, child = null) => {
 	let li = document.createElement('li');
 	li.classList.add('nav-item');
 	let btn = document.createElement('a');
+	if (id) {
+		btn.id = id;
+	}
 	btn.className = 'nav-link btn btn-outline-secondary';
-	btn.href = '/logout';
-	btn.id = 'btn-logout';
-	btn.appendChild(document.createTextNode('Logout'));
-	btn.addEventListener('click', logout);
+	btn.href = href;
+	if (setMargin) {
+		btn.style.marginRight = '10px';
+	}
+	if (listener) {
+		btn.addEventListener('click', listener);
+	}
+	if (title) {
+		btn.appendChild(document.createTextNode(title));
+	}
+	if (child) {
+		btn.appendChild(child);
+	}
 	li.appendChild(btn);
-	nav.appendChild(li);
-};
-
-let setAdminBtn = (nav) => {
-	let li = document.createElement('li');
-	li.classList.add('nav-item');
-	let btn = document.createElement('a');
-	btn.className = 'nav-link btn btn-outline-secondary';
-	btn.href = '/administration';
-	btn.style.marginRight = '10px';
-	btn.appendChild(document.createTextNode('Administration'));
-	li.appendChild(btn);
-	nav.appendChild(li);
+	return li;
 };
 
 let createNavBtn = (title, dataTarget) => {
@@ -53,15 +53,6 @@ let createNavBtn = (title, dataTarget) => {
 	btn.setAttribute('data-target', dataTarget);
 	li.appendChild(btn);
 	return li;
-};
-
-let setNavButtons = (nav) => {
-	let btn = createNavBtn('Login', '#loginModal');
-	btn.style.marginRight = '10px';
-	nav.appendChild(btn);
-	nav.appendChild(createNavBtn('Sign up', '#signUpModal'));
-	document.getElementById('btn-login').addEventListener('click', login);
-	document.getElementById('btn-register').addEventListener('click', register);
 };
 
 let register = () => {
@@ -109,10 +100,16 @@ let login = () => {
 					util.setCookie('auth_token', data['key'], 1);
 					let nav = document.getElementById('nav-buttons');
 					nav.innerHTML = '';
+					let cartIcon = document.createElement('i');
+					cartIcon.className = 'fa fa-shopping-cart';
+					cartIcon.setAttribute('aria-hidden', 'true');
+					nav.appendChild(
+						createLinkButton(null, '/cart', false, null, 'btn-cart', cartIcon)
+					);
 					if (data['user']['is_superuser']) {
-						setAdminBtn(nav);
+						nav.appendChild(createLinkButton('Administration', '/administration', true));
 					}
-					setLogoutBtn(nav);
+					nav.appendChild(createLinkButton('Logout', '/logout', false, logout));
 					$('#loginModal').modal('hide');
 				},
 				error: (data) => {
@@ -135,15 +132,17 @@ document.addEventListener('DOMContentLoaded', () => {
 	util.userIsAuthenticated(
 		(data) => {
 			if (data['user']['is_superuser']) {
-				setAdminBtn(nav);
+				nav.appendChild(createLinkButton('Administration', '/administration', true));
 			}
-			setLogoutBtn(nav);
-
-			console.log(data);
+			nav.appendChild(createLinkButton('Logout', '/logout', false, logout));
 		},
 		(data) => {
-			setNavButtons(nav);
-
+			let btn = createNavBtn('Login', '#loginModal');
+			btn.style.marginRight = '10px';
+			nav.appendChild(btn);
+			nav.appendChild(createNavBtn('Sign up', '#signUpModal'));
+			document.getElementById('btn-login').addEventListener('click', login);
+			document.getElementById('btn-register').addEventListener('click', register);
 			if (data) {
 				console.log(data);
 			}
