@@ -5,11 +5,12 @@ let IndexView = require('../handlers');
 let GoodsView = require('../handlers/goods');
 let AuthViews = require('../handlers/auth');
 let AdministrationViews = require('../handlers/administration');
+let ProfileViews = require('../handlers/profile');
 let CartViews = require('../handlers/cart');
 
 router.get('/', IndexView.Index);
 router.get('/logout', AuthViews.Logout);
-router.get('/cart', CartViews.Cart);
+router.get('/profile', ProfileViews.Profile);
 router.get('/administration', AdministrationViews.Administration);
 router.get('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
 router.get('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);
@@ -27,6 +28,8 @@ router.post('/api/login', AuthViews.Login);
 router.post('/api/register', AuthViews.Register);
 router.post('/api/token/verify', AuthViews.VerifyToken);
 router.post('/api/promotions', AdministrationViews.Promotions);
+router.post('/api/cart/goods/add', CartViews.GoodsAdd);
+router.post('/api/cart/goods/remove', CartViews.GoodsRemove);
 
 router.put('/api/promotion/goods', AdministrationViews.PromotionGoods);
 

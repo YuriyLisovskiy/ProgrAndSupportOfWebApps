@@ -1,0 +1,44 @@
+extends includes/layout
+
+block title
+    title #{user.username} | Profile
+
+block head
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
+    link(rel="stylesheet", href="/static/css/administration.css")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js")
+
+block body
+    div(class="container")
+        h3(class="admin-title") User Profile
+        ul(class="nav nav-tabs", role="tablist")
+            li(class="nav-item")
+                a(class="nav-link", id="profile-tab", data-toggle="tab", href="#profile") Profile
+            li(class="nav-item")
+                a(class="nav-link", id="cart-tab", data-toggle="tab", href="#cart") Cart
+        div(class="tab-content")
+            div(id="profile", class="container tab-pane")
+                br
+                form(method="post")
+                    div(class="form-group row")
+                        label(for="first-name", class="col-sm-4") First name:
+                            input(value="", type="text", name="first_name", class="form-control", id="first-name", placeholder="Type text...")
+                        label(for="last-name", class="col-sm-4") Last name:
+                            input(value="", type="text", name="last_name", class="form-control", id="last-name", placeholder="Type text...")
+                        label(for="username", class="col-sm-4") Username:
+                            input(value=user.username, type="text", name="username", class="form-control", id="username", placeholder="Type text...")
+                    div(class="form-group row")
+                        label(for="full-address", class="col-sm-12") Full address:
+                            input(value="", type="text", name="full_address", class="form-control", id="full-address", placeholder="Type text...")
+                    div(class="form-group row")
+                        label(for="phone", class="col-sm-6") Phone:
+                            input(value="", type="number", name="phone", class="form-control", id="phone", placeholder="+380000000000")
+                        label(for="email", class="col-sm-6") Email:
+                            input(value=user.email, type="email", name="email", class="form-control", id="email", placeholder="username@example.com")
+                    button(type="submit", id="save-profile", class="btn btn-success") Save
+            div(id="cart", class="container tab-pane")
+                br
+                h3 Profile data
+
+block footer
+    script(type="module", src="/static/js/profile/profile.js")

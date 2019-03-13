@@ -106,9 +106,6 @@ document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 		promotionsDiv.className += ' fade';
 	}
 
-	document.getElementById('btn-logout').addEventListener('click', function () {
-		util.eraseCookie('auth_token');
-	});
 	let showMoreGoodsTab = document.getElementById('show-more-goods-tab');
 	showMoreGoodsTab.addEventListener('click', function showMoreGoodsListener() {
 		util.loadPage(

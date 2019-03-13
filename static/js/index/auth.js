@@ -76,15 +76,7 @@ let login = () => {
 	)
 };
 
-let logout = () => {
-	util.eraseCookie('auth_token');
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-	let btnLogout = document.getElementById('btn-logout');
-	if (btnLogout) {
-		btnLogout.addEventListener('click', logout);
-	}
 	let btnLogin = document.getElementById('btn-login');
 	if (btnLogin) {
 		btnLogin.addEventListener('click', login);

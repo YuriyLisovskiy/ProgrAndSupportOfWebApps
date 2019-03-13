@@ -51,14 +51,24 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 	};
 	if (!request.user) {
 		request.user = {
-			is_authenticated: false
+			is_authenticated: false,
+			goods_in_cart_num: 0
 		};
 		VerifyToken(request, settings.SecretKey,
 			function (data) {
 				db.getUser(data.username, (user) => {
 					request['user'] = user;
 					request['user']['is_authenticated'] = true;
-					finished();
+					db.getCart(user.username,
+						(cart) => {
+							request.user.goods_in_cart_num = cart.goods_number;
+							finished();
+						},
+						(err) => {
+							console.log(err);
+							finished();
+						}
+					);
 				}, (err) => {
 					console.log(err);
 					finished();
@@ -81,8 +91,19 @@ let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 			db.getUser(data.username, (user) => {
 				request['user'] = user;
 				request.user['is_authenticated'] = true;
-				HandleRequest(
-					{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
+				db.getCart(user.username,
+					(cart) => {
+						request.user['goods_in_cart_num'] = cart.goods_number;
+						HandleRequest(
+							{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
+						);
+					},
+					() => {
+						request.user['goods_in_cart_num'] = 0;
+						HandleRequest(
+							{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
+						);
+					}
 				);
 			}, () => {
 				SendNotFound(response, 'User is not found');
@@ -153,7 +174,6 @@ let Render = (request, response, template, context = null) => {
 };
 
 module.exports = {
-//	VerifyToken: VerifyToken,
 	SendNotAcceptable: SendNotAcceptable,
 	SendNotFound: SendNotFound,
 	SendBadRequest: SendBadRequest,

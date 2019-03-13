@@ -25,6 +25,7 @@ module.exports = {
 					);
 				} else {
 					db.getAllGoods(
+						request.user.username,
 						(goods) => {
 							let updGoods = goods.slice(limit * (page - 1), limit * page);
 							for (let i = 0; i < updGoods.length; i++) {
