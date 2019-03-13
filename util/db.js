@@ -13,90 +13,52 @@ class Db {
 
 	createDb() {
 		let query = this.db.prepare(`
-CREATE TABLE IF NOT EXISTS Users (
-  username      VARCHAR(100)  PRIMARY KEY,
-  email         VARCHAR(255)  NOT NULL,
-  password      VARCHAR(100)  NOT NULL,
-  is_superuser  BOOLEAN       DEFAULT FALSE
-);
+          CREATE TABLE IF NOT EXISTS Users (
+                                             id            INTEGER       PRIMARY KEY,
+                                             username      VARCHAR(100)  UNIQUE NOT NULL,
+                                             email         VARCHAR(255)  UNIQUE NOT NULL,
+                                             password      VARCHAR(100)  NOT NULL,
+                                             first_name    VARCHAR(100)  NULL,
+                                             last_name     VARCHAR(100)  NULL,
+                                             address       VARCHAR(500)  NULL,
+                                             phone         VARCHAR(50)   NULL,
+                                             is_superuser  BOOLEAN       DEFAULT FALSE
+          );
 
-CREATE TABLE IF NOT EXISTS Promotions (
-  id            INTEGER       PRIMARY KEY,
-  percentage    INTEGER       DEFAULT 0,
-  comment       VARCHAR(255)  NULL
-);
+          CREATE TABLE IF NOT EXISTS Promotions (
+                                                  id            INTEGER       PRIMARY KEY,
+                                                  percentage    INTEGER       DEFAULT 0,
+                                                  comment       VARCHAR(255)  NULL
+          );
 
-CREATE TABLE IF NOT EXISTS Goods (
-  code          INTEGER       PRIMARY KEY,
-  title         VARCHAR(255)  NOT NULL,
-  price         DECIMAL       NOT NULL,
-  image         VARCHAR(500)  NULL,
-  description   TEXT DEFAULT  NULL,
-  promotion     INTEGER       NULL,
+          CREATE TABLE IF NOT EXISTS Goods (
+                                             code          INTEGER       PRIMARY KEY,
+                                             title         VARCHAR(255)  NOT NULL,
+                                             price         DECIMAL       NOT NULL,
+                                             image         VARCHAR(500)  NULL,
+                                             description   TEXT DEFAULT  NULL,
+                                             promotion     INTEGER       NULL,
 
-  FOREIGN KEY(promotion) REFERENCES Promotions(id)
-);
+                                             FOREIGN KEY(promotion) REFERENCES Promotions(id)
+          );
 
-CREATE TABLE IF NOT EXISTS Carts (
-  id                INTEGER       PRIMARY KEY,
-  user              VARCHAR(100)  UNIQUE,
-  goods_number      INTEGER       DEFAULT 0,
+          CREATE TABLE IF NOT EXISTS Carts (
+                                             id                INTEGER       PRIMARY KEY,
+                                             user_id           INTEGER(100)  UNIQUE,
 
-  FOREIGN KEY(user) REFERENCES Users(username)
-);
+                                             FOREIGN KEY(user_id) REFERENCES Users(id)
+          );
 
-CREATE TABLE IF NOT EXISTS GoodsCarts (
-  goods_code  INTEGER NOT NULL,
-  cart_id     INTEGER NOT NULL,
-  amount      INTEGER DEFAULT 1,
+          CREATE TABLE IF NOT EXISTS GoodsCarts (
+                                                  goods_code  INTEGER NOT NULL,
+                                                  cart_id     INTEGER NOT NULL,
+                                                  amount      INTEGER DEFAULT 1,
 
-  FOREIGN KEY(goods_code) REFERENCES Goods(code),
-  FOREIGN KEY(cart_id) REFERENCES Carts(id),
+                                                  FOREIGN KEY(goods_code) REFERENCES Goods(code),
+                                                  FOREIGN KEY(cart_id) REFERENCES Carts(id),
 
-  PRIMARY KEY (goods_code, cart_id)
-);
-
-CREATE TRIGGER IF NOT EXISTS GoodsAddToCartTrigger
-  AFTER INSERT
-  ON GoodsCarts
-  FOR EACH ROW
-  BEGIN
-	UPDATE Carts
-	SET goods_number = goods_number + ABS(goods_number - NEW.amount)
-    WHERE Carts.id = NEW.cart_id;
-  END;
-
-CREATE TRIGGER IF NOT EXISTS GoodsDecreaseAmountTrigger
-  AFTER UPDATE
-  ON GoodsCarts
-  FOR EACH ROW
-  WHEN OLD.amount > NEW.amount
-  BEGIN
-    UPDATE Carts
-    SET goods_number = goods_number - ABS(goods_number - NEW.amount)
-    WHERE Carts.id = NEW.cart_id;
-  END;
-
-CREATE TRIGGER IF NOT EXISTS GoodsIncreaseAmountTrigger
-  AFTER UPDATE
-  ON GoodsCarts
-  FOR EACH ROW
-  WHEN OLD.amount < NEW.amount
-  BEGIN
-    UPDATE Carts
-    SET goods_number = goods_number + ABS(goods_number - NEW.amount)
-    WHERE Carts.id = NEW.cart_id;
-  END;
-
-CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
-  AFTER DELETE
-  ON GoodsCarts
-  FOR EACH ROW
-  BEGIN
-    UPDATE Carts
-    SET goods_number = 0
-    WHERE Carts.id = OLD.cart_id;
-    END;
+                                                  PRIMARY KEY (goods_code, cart_id)
+          );
 `);
 		query.run((err) => {
 			if (err) {
