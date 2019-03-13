@@ -11,26 +11,30 @@ let Login = (request, response) => {
 		response: response,
 		post: (request, response) => {
 			let credentials = request.body;
-			db.getUser(credentials.username,
+			db.getUser(credentials.username, null,
 				(user) => {
-					let pwd_hash = crypto.createHash('sha256').update(credentials.password).digest('base64');
-					if (pwd_hash === user.password) {
-						jwt.sign(user, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
-							if (err) {
-								console.log(err);
-								util.SendBadRequest(response);
-							} else {
-								util.SendSuccessResponse(response, 200, {
-									key: token,
-									user: {
-										username: user.username,
-										is_superuser: user.is_superuser
-									}
-								});
-							}
-						});
+					if (user) {
+						let pwd_hash = crypto.createHash('sha256').update(credentials.password).digest('base64');
+						if (pwd_hash === user.password) {
+							jwt.sign(user, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
+								if (err) {
+									console.log(err);
+									util.SendBadRequest(response);
+								} else {
+									util.SendSuccessResponse(response, 200, {
+										key: token,
+										user: {
+											username: user.username,
+											is_superuser: user.is_superuser
+										}
+									});
+								}
+							});
+						} else {
+							util.SendBadRequest(response, 'invalid credentials');
+						}
 					} else {
-						util.SendBadRequest(response, 'invalid credentials');
+						util.SendNotFound(response, 'User is not found');
 					}
 				},
 				(err) => {
@@ -48,16 +52,28 @@ let Register = (request, response) => {
 		response: response,
 		post: (request, response) => {
 			let credentials = request.body;
-			db.createUser(
-				credentials.username,
-				credentials.email,
-				credentials.password,
-				() => {
-					util.SendSuccessResponse(response, 201, {detail: 'registration is successful'});
+			db.getUser(credentials.username, credentials.email,
+				(user) => {
+					if (user) {
+						util.SendBadRequest(response, 'user already exists');
+					} else {
+						db.createUser(
+							credentials.username,
+							credentials.email,
+							credentials.password,
+							() => {
+								util.SendSuccessResponse(response, 201, {detail: 'registration is successful'});
+							},
+							(err) => {
+								console.log(err);
+								util.SendBadRequest(response, err);
+							}
+						);
+					}
 				},
 				(err) => {
-					console.log(err);
-					util.SendBadRequest(response, err);
+					console.log('[ERROR] auth.Register, getUser: ' + err.detail);
+					util.SendInternalServerError(response, 'unable to retrieve user');
 				}
 			);
 		}

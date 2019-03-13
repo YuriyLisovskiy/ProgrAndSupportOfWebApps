@@ -27,7 +27,7 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 		if (request.status < 400) {
 			success(JSON.parse(request.responseText));
 		} else {
-			error({detail: request.responseText, status: request.status});
+			error({detail: JSON.parse(request.responseText), status: request.status});
 		}
 	}, false);
 	if (params) {

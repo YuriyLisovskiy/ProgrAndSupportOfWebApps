@@ -11,6 +11,10 @@ module.exports = {
 			get: (request, response) => {
 				response.render('profile', {user: request.user});
 			},
+			post: (request, response) => {
+				console.log(request.body);
+				response.redirect('/profile');
+			}
 		});
 	},
 };

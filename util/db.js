@@ -122,18 +122,22 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 		);
 	}
 
-	getUser(username, success, failed) {
+	getUser(username, email, success, failed) {
+		let query = `SELECT * FROM Users WHERE username = ?`;
+		let params = [username];
+		if (email) {
+			query += ' AND email = ?';
+			params.push(email);
+		}
 		this.db.get(
-			`SELECT username, email, password, is_superuser FROM Users WHERE username = ?;`,
-			[username],
+			query,
+			params,
 			(err, user) => {
 				if (err) {
 					console.log(err);
 					failed({detail: err});
-				} else if (user) {
-					success(user);
 				} else {
-					failed({detail: 'user \'' + username +'\' does not exist'});
+					success(user);
 				}
 			}
 		);
@@ -144,7 +148,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 		let passwordHash = crypto.createHash('sha256').update(rawPassword).digest('base64');
 		query.run([email, username, passwordHash], (err) => {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success();
 				}
@@ -160,13 +164,13 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 			FROM Goods
 			LEFT JOIN Promotions ON Promotions.id = Goods.promotion
 			LEFT JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code
-			LEFT JOIN Carts ON Carts.id = GoodsCarts.cart_id AND Carts.user = ?
+			LEFT JOIN Carts ON Carts.id = GoodsCarts.cart_id AND Carts.user_id = ?
 		`, [user_pk], success, failed);
 	}
 
 	getGoodsWithoutPromotions(success, failed) {
 		this.getData(
-			`	SELECT code, title, price, description FROM Goods WHERE promotion IS NULL;`,
+			`	SELECT * FROM Goods WHERE promotion IS NULL;`,
 			[], success, failed
 		);
 	}
@@ -198,7 +202,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 	filterGoodsByPromotion(promotion, success, failed) {
 		this.getData(
 			`
-					SELECT code, title, price, description, image, promotion
+					SELECT *
 				  	FROM Goods
 					WHERE promotion = ?;
 				  `,
@@ -209,10 +213,10 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 	}
 
 	createGoods(title, price, description, promotion, success, failed) {
-		let query = this.db.prepare(`INSERT INTO Goods (title, price, description, promotion) VALUES (?, ?, ?, ?);`);
-		query.run([title, price, description, promotion], function(err) {
+		let query = this.db.prepare(`INSERT INTO Goods (title, price, description, image, promotion) VALUES (?, ?, ?, ?, ?);`);
+		query.run([title, price, description, null, promotion], function(err) {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success(this.lastID);
 				}
@@ -233,7 +237,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 				goodsItem.code
 			], function(err) {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success(this.lastID);
 				}
@@ -245,7 +249,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 		let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
 		query.run([code], (err) => {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success();
 				}
@@ -261,7 +265,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 		let query = this.db.prepare(`INSERT INTO Promotions (percentage, comment) VALUES (?, ?);`);
 		query.run([percentage, comment], function(err) {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success(this.lastID);
 				}
@@ -289,7 +293,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 				item.id
 			], function(err) {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success(this.lastID);
 				}
@@ -301,7 +305,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 		let query = this.db.prepare(`DELETE FROM Promotions WHERE id = ?`);
 		query.run([id], function(err) {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success(this.lastID);
 				}
@@ -310,7 +314,7 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 	}
 
 	getCart(user_pk, success, failed) {
-		this.db.get(`SELECT * FROM Carts WHERE user = ?`, [user_pk], (err, data) => {
+		this.db.get(`SELECT * FROM Carts WHERE user_id = ?`, [user_pk], (err, data) => {
 			if (err) {
 				failed({detail: err});
 			} else {
@@ -320,10 +324,10 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 	}
 
 	createCart(user_pk, success, failed) {
-		let query = this.db.prepare(`INSERT INTO Carts (user) VALUES (?);`);
+		let query = this.db.prepare(`INSERT INTO Carts (user_id) VALUES (?);`);
 		query.run([user_pk], function(err) {
 				if (err) {
-					failed(err);
+					failed({detail: err});
 				} else {
 					success(this.lastID);
 				}
@@ -402,6 +406,21 @@ CREATE TRIGGER IF NOT EXISTS GoodsRemoveFromCartTrigger
 				}
 			}
 		);
+	}
+
+	countGoodsAmountInUserCart(user_pk, success, failed) {
+		this.db.get(`
+			SELECT Sum(GoodsCarts.amount) as goods_amount
+			FROM Carts
+			JOIN GoodsCarts ON GoodsCarts.cart_id = Carts.id
+				AND Carts.user_id = ?;
+		`, [user_pk], (err, data) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success(data.goods_amount);
+			}
+		});
 	}
 }
 

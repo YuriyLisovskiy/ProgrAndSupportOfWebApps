@@ -14,7 +14,7 @@ let VerifyToken = (request, secret, success, failed) => {
 			}
 		});
 	} else {
-		failed({detail: 'header is undefined'});
+		failed({detail: 'token is undefined'});
 	}
 };
 
@@ -50,32 +50,39 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 		}
 	};
 	if (!request.user) {
-		request.user = {
-			is_authenticated: false,
-			goods_in_cart_num: 0
-		};
 		VerifyToken(request, settings.SecretKey,
 			function (data) {
-				db.getUser(data.username, (user) => {
-					request['user'] = user;
-					request['user']['is_authenticated'] = true;
-					db.getCart(user.username,
-						(cart) => {
-							request.user.goods_in_cart_num = cart.goods_number;
-							finished();
-						},
-						(err) => {
-							console.log(err);
-							finished();
-						}
-					);
+				db.getUser(data.username, null, (user) => {
+					if (user) {
+						request.user = user;
+						request.user.is_authenticated = true;
+						db.countGoodsAmountInUserCart(user.username,
+							(goods_amount) => {
+								if (!goods_amount) {
+									goods_amount = 0;
+								}
+								request.user.goods_in_cart_num = goods_amount;
+								finished();
+							},
+							(err) => {
+								console.log('[ERROR] util.HandleRequest: countGoodsAmountInUserCart: ' + err.detail);
+								SendInternalServerError(response, 'unable to count cart\'s goods amount');
+							}
+						);
+					} else {
+						SendNotFound(response, 'User is not found');
+					}
 				}, (err) => {
-					console.log(err);
-					finished();
+					console.log('[ERROR] util.HandleRequest: getUser: ' + err.detail);
+					SendInternalServerError(response, 'unable to retrieve user');
 				});
 			},
 			(err) => {
-				console.log(err);
+				console.log('[ERROR] util.HandleRequest: VerifyToken: ' + err.detail);
+				request.user = {
+					is_authenticated: false,
+					goods_in_cart_num: 0
+				};
 				finished();
 			}
 		);
@@ -88,29 +95,30 @@ let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 	response['send_json'] = request.headers['accept'] === 'application/json';
 	VerifyToken(request, settings.SecretKey,
 		(data) => {
-			db.getUser(data.username, (user) => {
-				request['user'] = user;
-				request.user['is_authenticated'] = true;
-				db.getCart(user.username,
-					(cart) => {
-						request.user['goods_in_cart_num'] = cart.goods_number;
-						HandleRequest(
-							{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
-						);
-					},
-					() => {
-						request.user['goods_in_cart_num'] = 0;
-						HandleRequest(
-							{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
-						);
-					}
-				);
-			}, () => {
-				SendNotFound(response, 'User is not found');
+			db.getUser(data.username, null, (user) => {
+				if (user) {
+					request['user'] = user;
+					request.user['is_authenticated'] = true;
+					db.countGoodsAmountInUserCart(user.username,
+						(goods_amount) => {
+							request.user['goods_in_cart_num'] = goods_amount;
+							HandleRequest(
+								{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
+							);
+						},
+						() => {
+							SendInternalServerError(response, 'unable to count cart\'s goods amount');
+						}
+					);
+				} else {
+					SendNotFound(response, 'User is not found');
+				}
+			}, (err) => {
+				console.log('[ERROR] util.HandleAuthRequest: getUser: ' + err.detail);
+				SendInternalServerError(response, 'unable to retrieve user');
 			});
 		},
 		() => {
-			console.log('Could not verify token');
 			SendForbidden(response);
 		}
 	);

@@ -32,12 +32,11 @@ let register = () => {
 					email: email,
 					password: password
 				},
-				success: (data) => {
-					alert(data['detail']);
-					$('#signUpModal').modal('hide');
+				success: () => {
+					location.reload();
 				},
 				error: (data) => {
-					alert('Registration failed:\n' + data['detail']);
+					alert('Registration failed:\n' + data.detail.detail);
 				}
 			});
 		},
@@ -60,13 +59,11 @@ let login = () => {
 					password: password
 				},
 				success: (data) => {
-					console.log(data);
-
 					util.setCookie('auth_token', data['key'], 1);
 					location.reload();
 				},
 				error: (data) => {
-					alert('Login failed: ' + JSON.parse(data)['detail']);
+					alert('Login failed: ' + data.detail.detail);
 				}
 			});
 		},
