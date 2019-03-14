@@ -12,7 +12,7 @@ class Db {
 	}
 
 	createDb() {
-		let query = this.db.prepare(`
+		let query = `
           CREATE TABLE IF NOT EXISTS Users (
 		    id            INTEGER       PRIMARY KEY,
 		    username      VARCHAR(100)  UNIQUE NOT NULL,
@@ -61,19 +61,30 @@ class Db {
 		);
 
 		CREATE TABLE IF NOT EXISTS Orders (
-		  id                  INTEGER       PRIMARY KEY,
-		  status              VARCHAR(20)   NOT NULL,
-		  destination_address VARCHAR(500)  NOT NULL,
-		  u_first_name        VARCHAR(100)  NOT NULL,
-		  u_last_name         VARCHAR(100)  NOT NULL,
-		  u_phone             VARCHAR(50)   NOT NULL,
-		  u_email             VARCHAR(255)  NOT NULL,
-		  user_id             INTEGER       NOT NULL,
+		  	id                  INTEGER       PRIMARY KEY,
+          	status              VARCHAR(20)   DEFAULT 'In progress',
+		  	destination_address VARCHAR(500)  NOT NULL,
+		  	u_first_name        VARCHAR(100)  NOT NULL,
+		  	u_last_name         VARCHAR(100)  NOT NULL,
+		  	u_phone             VARCHAR(50)   NOT NULL,
+		  	u_email             VARCHAR(255)  NOT NULL,
+		  	user_id             INTEGER       NOT NULL,
 		
-		  FOREIGN KEY(user_id) REFERENCES Users(id)
+		  	FOREIGN KEY(user_id) REFERENCES Users(id)
 		);
-`);
-		query.run((err) => {
+
+        CREATE TABLE IF NOT EXISTS OrdersGoods (
+          	order_pk  INTEGER   NOT NULL,
+          	goods_pk  INTEGER   NOT NULL,
+            amount    INTEGER   DEFAULT 1,
+
+          	FOREIGN KEY(order_pk) REFERENCES Orders(id),
+          	FOREIGN KEY(goods_pk) REFERENCES Goods(code),
+
+          	PRIMARY KEY (order_pk, goods_pk)
+        );
+`;
+		this.db.run(query, (err) => {
 			if (err) {
 				console.log(err);
 			}
@@ -425,6 +436,35 @@ class Db {
 		);
 	}
 
+	deleteCartData(cart_pk, success, failed) {
+		let query = this.db.prepare(`
+			  DELETE FROM GoodsCarts
+			    WHERE GoodsCarts.cart_id = ${cart_pk};
+			  DELETE FROM Carts
+			    WHERE Carts.id = ${cart_pk};
+		`);
+		query.run([], (err) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success();
+			}
+		});
+	}
+
+	setOrderStatus(newStatus, success, failed) {
+		this.db.prepare(`
+			UPDATE Orders
+			  SET status = ${newStatus};
+		`).run((err) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success();
+			}
+		});
+	}
+
 	countGoodsAmountInUserCart(user_pk, success, failed) {
 		this.db.get(`
 			SELECT Count(GoodsCarts.amount) as goods_amount
@@ -442,6 +482,79 @@ class Db {
 				success(res);
 			}
 		});
+	}
+
+	getOrders(user_pk, success, failed) {
+		this.getData(`
+			SELECT * FROM Orders
+			WHERE user_pk = ?;
+		`, [user_pk], success, failed);
+	}
+
+	getOrder(order_id, success, failed) {
+		this.db.get(`
+			SELECT * FROM Orders WHERE id = ?;
+		`, [order_id], (err, data) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success(data);
+			}
+		});
+	}
+
+	getOrderedGoods(order_pk, success, failed) {
+		this.getData(`
+			SELECT OrdersGoods.goods_pk as id, OrdersGoods.amount, OrdersGoods.total_sum, Goods.title
+			FROM OrdersGoods
+			JOIN Goods ON Goods.code = OrdersGoods.goods_pk
+			WHERE order_pk = ?;
+		`, [order_pk], success, failed);
+	}
+
+	createOrder(data, success, failed) {
+		let insertGoods = (query, params) => {
+			this.db.prepare(query).run(params, function(err) {
+				if (err) {
+					failed({detail: err});
+				} else {
+					success();
+				}
+			});
+		};
+		this.db.prepare(`
+			INSERT INTO Orders (destination_address, u_first_name, u_last_name, u_phone, u_email, user_id)
+			  VALUES (?, ?, ?, ?, ?, ?);
+		`).run(
+			[data.address, data.first_name, data.last_name, data.phone, data.email, data.user_pk],
+			function (err) {
+				if (err) {
+					failed({detail: err});
+				} else {
+					let query = `INSERT INTO OrdersGoods(order_pk, goods_pk, amount, total_sum)\nVALUES\n`;
+					let params = [];
+					for (let i = 0; i < data.goods.length; i++) {
+						query += `\n  (?, ?, ?, ?)`;
+						if (data.goods.length - 1 !== i) {
+							query += ','
+						}
+						let item = data.goods[i];
+						params = params.concat([this.lastID, item.code, item.amount]);
+						if (item.discount_percentage) {
+							params.push((item.price - item.price * item.discount_percentage / 100) * item.amount);
+						} else {
+							params.push(item.price * item.amount);
+						}
+					}
+					query += ';';
+
+					console.log(params);
+					console.log('\n\n', query);
+
+					insertGoods(query, params);
+				}
+			}
+		);
 	}
 }
 

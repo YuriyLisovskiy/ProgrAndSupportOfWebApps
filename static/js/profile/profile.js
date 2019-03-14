@@ -1,6 +1,6 @@
 import util from "../util.js";
 
-function manageGoods (url, code, amount, rmItem) {
+function manageGoods (url, code, amount, rmItem, success) {
 	util.sendAjax({
 		method: 'POST',
 		url: url,
@@ -9,12 +9,26 @@ function manageGoods (url, code, amount, rmItem) {
 			goods_code: code
 		},
 		success: (data) => {
+			success();
 			if (data.amount < 1) {
 				rmItem();
 			} else {
 				let amountContainer = document.getElementById('amount-' + code);
 				amountContainer.innerText = data.amount.toString();
 				amountContainer.setAttribute('value', data.amount);
+			}
+			let tBody = document.getElementById('goods-table-body');
+			if (tBody.childElementCount < 1) {
+				let noGoodsMsg = document.createElement('h4');
+				noGoodsMsg.className = 'text-muted no-goods-in-cart-title';
+				noGoodsMsg.appendChild(document.createTextNode('No goods in cart'));
+
+				let cart = document.getElementById('cart');
+				cart.innerHTML = '';
+				cart.appendChild(document.createElement('br'));
+				cart.appendChild(noGoodsMsg);
+
+				document.getElementById('btn-cart-badge').innerHTML = '0';
 			}
 		},
 		error: (err) => {
@@ -54,19 +68,25 @@ document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 	let increaseButtons = document.getElementsByName('increase-goods');
 	for (let i = 0; i < increaseButtons.length; i++) {
 		increaseButtons[i].addEventListener('click', function addGoods() {
-			resetSum(totalSumContainer, this.value, 1);
-			manageGoods('/api/cart/goods/add', this.value, 1, () => {});
+			manageGoods('/api/cart/goods/add', this.value, 1, () => {},
+				() => {
+					resetSum(totalSumContainer, this.value, 1);
+				}
+			);
 		});
 	}
 
 	let decreaseButtons = document.getElementsByName('decrease-goods');
 	for (let i = 0; i < decreaseButtons.length; i++) {
 		decreaseButtons[i].addEventListener('click', function decreaseGoods() {
-			resetSum(totalSumContainer, this.value, -1);
-			manageGoods('/api/cart/goods/remove', this.value, 1, () => {
+			manageGoods('/api/cart/goods/remove', this.value, 1,
+			() => {
 				this.removeEventListener('click', decreaseGoods);
 				let row = document.getElementById('goods-item-' + this.value);
 				this.parentNode.parentNode.parentNode.removeChild(row);
+			},
+			() => {
+				resetSum(totalSumContainer, this.value, -1);
 			});
 		});
 	}
@@ -75,11 +95,17 @@ document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 	for (let i = 0; i < removeGoodsButtons.length; i++) {
 		removeGoodsButtons[i].addEventListener('click', function rmGoods() {
 			let amount = parseInt(document.getElementById('amount-' + this.value).getAttribute('value'));
-			resetSum(totalSumContainer, this.value, -amount);
-			manageGoods('/api/cart/goods/remove', this.value, amount, () => {
+
+			console.log(amount);
+
+			manageGoods('/api/cart/goods/remove', this.value, amount,
+			() => {
 				this.removeEventListener('click', rmGoods);
 				let row = document.getElementById('goods-item-' + this.value);
 				this.parentNode.parentNode.parentNode.removeChild(row);
+			},
+			() => {
+				resetSum(totalSumContainer, this.value, -amount);
 			});
 		});
 	}

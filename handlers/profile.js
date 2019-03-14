@@ -20,15 +20,19 @@ module.exports = {
 				);
 			},
 			post: (request, response) => {
-				db.getUser(request.user.username, request.user.email,
-					(user) => {
-						if (user) {
-							let data = request.body;
-							user.first_name = data.first_name;
-							user.last_name = data.last_name;
+				db.getUser(request.user.username, request.user.email, (user) => {
+						let getField = (field) => {
+							return (field && field !== '') ? field : null;
+						};
+						let data = request.body;
+						if (!data.username || data.username === '' || !data.email || data.email === '') {
+							util.SendBadRequest(response);
+						} else {
+							user.first_name = getField(data.first_name);
+							user.last_name = getField(data.last_name);
 							user.username = data.username;
-							user.address = data.address;
-							user.phone = data.phone;
+							user.address = getField(data.address);
+							user.phone = getField(data.phone);
 							user.email = data.email;
 							db.updateUser(user,
 								() => {
@@ -39,8 +43,6 @@ module.exports = {
 									util.SendInternalServerError(response);
 								}
 							);
-						} else {
-							util.SendNotFound(response, 'User is not found');
 						}
 					},
 					(err) => {

@@ -95,9 +95,11 @@ let refreshData = (data, container, createFunction, currPage, moreBtn, root, lis
 		for (let i = 0; i < data[dataName].length; i++) {
 			container.appendChild(createFunction(data[dataName][i]));
 		}
-		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
-			moreBtn.removeEventListener('click', listener);
-			moreBtn.parentNode.removeChild(moreBtn);
+		if (data.pages) {
+			if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+				moreBtn.removeEventListener('click', listener);
+				moreBtn.parentNode.removeChild(moreBtn);
+			}
 		}
 	} else {
 		appendNoDataMessage(root, 'No ' + dataName);

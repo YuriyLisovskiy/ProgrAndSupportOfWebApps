@@ -28,6 +28,10 @@ html
                                 i(class="fa fa-shopping-cart")
                                     span(class="badge badge-pill badge-default" id="btn-cart-badge")=0
                     block nav_buttons
+                    if user.is_authenticated
+                        li(class="nav-item")
+                            a(class="nav-link", href="/profile" id="btn-profile" data-toggle="tooltip" title="Profile") #{user.username} 
+                                i(class="fa fa-user-circle")
                     li(class="nav-item")
                         a(class="nav-link", href="/") Goods
                     if user.is_authenticated
@@ -36,9 +40,6 @@ html
                                 a(class="nav-link" href="/administration") Administration
                         li(class="nav-item")
                             a(class="nav-link", href="/logout", id="btn-logout") Logout
-                        li(class="nav-item")
-                            a(class="nav-link", href="/profile" id="btn-profile" data-toggle="tooltip" title="Profile")
-                                i(class="fa fa-user-circle")
                     else
                         li(class="nav-item")
                             a(class="nav-link", data-toggle="modal", data-target="#loginModal" href="#" id="btn-open-login") Log in
