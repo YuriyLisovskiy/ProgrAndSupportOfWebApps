@@ -24,23 +24,36 @@ module.exports = {
 						}
 					);
 				} else {
-					db.getAllGoods(
-						(goods) => {
-							let updGoods = goods.slice(limit * (page - 1), limit * page);
-							for (let i = 0; i < updGoods.length; i++) {
-								let discount = updGoods[i].discount_percentage;
-								if (discount) {
-									let price = updGoods[i].price;
-									updGoods[i]['discount_price'] = Number(price - price * discount / 100).toFixed(2);
-								}
+					db.getCart(request.user.id,
+						(cart) => {
+							let cartId = null;
+							if (cart) {
+								cartId = cart.id;
 							}
-							util.SendSuccessResponse(response, 200, {
-								goods: updGoods,
-								pages: Math.ceil(goods.length / limit),
-							});
+							db.getAllGoods(
+								cartId,
+								(goods) => {
+									let updGoods = goods.slice(limit * (page - 1), limit * page);
+									for (let i = 0; i < updGoods.length; i++) {
+										let discount = updGoods[i].discount_percentage;
+										if (discount) {
+											let price = updGoods[i].price;
+											updGoods[i]['discount_price'] = Number(price - price * discount / 100).toFixed(2);
+										}
+									}
+									util.SendSuccessResponse(response, 200, {
+										goods: updGoods,
+										pages: Math.ceil(goods.length / limit),
+									});
+								},
+								() => {
+									util.SendInternalServerError(response);
+								}
+							);
 						},
-						() => {
-							util.SendInternalServerError(response);
+						(err) => {
+							console.log('[ERROR] goods.Goods, get, getCart: ' + err.detail);
+							util.SendInternalServerError(response, err.detail);
 						}
 					);
 				}

@@ -18,52 +18,6 @@ let credentialsAreValid = ({email, username, password}, success, error) => {
 	}
 };
 
-let setLogoutBtn = (nav) => {
-	let li = document.createElement('li');
-	li.classList.add('nav-item');
-	let btn = document.createElement('a');
-	btn.className = 'nav-link btn btn-outline-secondary';
-	btn.href = '/logout';
-	btn.id = 'btn-logout';
-	btn.appendChild(document.createTextNode('Logout'));
-	btn.addEventListener('click', logout);
-	li.appendChild(btn);
-	nav.appendChild(li);
-};
-
-let setAdminBtn = (nav) => {
-	let li = document.createElement('li');
-	li.classList.add('nav-item');
-	let btn = document.createElement('a');
-	btn.className = 'nav-link btn btn-outline-secondary';
-	btn.href = '/administration';
-	btn.style.marginRight = '10px';
-	btn.appendChild(document.createTextNode('Administration'));
-	li.appendChild(btn);
-	nav.appendChild(li);
-};
-
-let createNavBtn = (title, dataTarget) => {
-	let li = document.createElement('li');
-	li.classList.add('nav-item');
-	let btn = document.createElement('button');
-	btn.className = 'nav-link btn btn-outline-secondary';
-	btn.appendChild(document.createTextNode(title));
-	btn.setAttribute('data-toggle', 'modal');
-	btn.setAttribute('data-target', dataTarget);
-	li.appendChild(btn);
-	return li;
-};
-
-let setNavButtons = (nav) => {
-	let btn = createNavBtn('Login', '#loginModal');
-	btn.style.marginRight = '10px';
-	nav.appendChild(btn);
-	nav.appendChild(createNavBtn('Sign up', '#signUpModal'));
-	document.getElementById('btn-login').addEventListener('click', login);
-	document.getElementById('btn-register').addEventListener('click', register);
-};
-
 let register = () => {
 	let email = document.getElementById('email-register').value;
 	let username = document.getElementById('username-register').value;
@@ -79,11 +33,11 @@ let register = () => {
 					password: password
 				},
 				success: (data) => {
-					alert(data['detail']);
-					$('#signUpModal').modal('hide');
+					util.setCookie('auth_token', data['key'], 1);
+					location.reload();
 				},
 				error: (data) => {
-					alert('Registration failed:\n' + data['detail']);
+					alert('Registration failed:\n' + data.detail.detail);
 				}
 			});
 		},
@@ -107,16 +61,10 @@ let login = () => {
 				},
 				success: (data) => {
 					util.setCookie('auth_token', data['key'], 1);
-					let nav = document.getElementById('nav-buttons');
-					nav.innerHTML = '';
-					if (data['user']['is_superuser']) {
-						setAdminBtn(nav);
-					}
-					setLogoutBtn(nav);
-					$('#loginModal').modal('hide');
+					location.reload();
 				},
 				error: (data) => {
-					alert('Login failed: ' + JSON.parse(data)['detail']);
+					alert('Login failed: ' + data.detail.detail);
 				}
 			});
 		},
@@ -126,27 +74,13 @@ let login = () => {
 	)
 };
 
-let logout = () => {
-	util.eraseCookie('auth_token');
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-	let nav = document.getElementById('nav-buttons');
-	util.userIsAuthenticated(
-		(data) => {
-			if (data['user']['is_superuser']) {
-				setAdminBtn(nav);
-			}
-			setLogoutBtn(nav);
-
-			console.log(data);
-		},
-		(data) => {
-			setNavButtons(nav);
-
-			if (data) {
-				console.log(data);
-			}
-		}
-	);
+	let btnLogin = document.getElementById('btn-login');
+	if (btnLogin) {
+		btnLogin.addEventListener('click', login);
+	}
+	let btnRegister = document.getElementById('btn-register');
+	if (btnRegister) {
+		btnRegister.addEventListener('click', register);
+	}
 });

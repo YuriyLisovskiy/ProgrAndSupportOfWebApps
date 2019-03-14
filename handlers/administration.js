@@ -12,7 +12,7 @@ module.exports = {
 				if (request.user.is_superuser) {
 					db.getPromotions(
 						(promotions) => {
-							response.render('administration', {promotions: promotions});
+							util.Render(request, response, 'administration', {promotions: promotions});
 						},
 						(err) => {
 							console.log(err);
@@ -53,7 +53,10 @@ module.exports = {
 							if (item) {
 								db.getPromotions(
 									(promotions) => {
-										response.render('edit_goods', {item: item, promotions: promotions});
+										util.Render(
+											request, response,
+											'edit_goods', {item: item, promotions: promotions}
+										);
 									},
 									(err) => {
 										console.log(err);
@@ -203,7 +206,7 @@ module.exports = {
 						request.params[0],
 						(item) => {
 							if (item) {
-								response.render('edit_promotion', {item: item});
+								util.Render(request, response, 'edit_promotion', {item: item});
 							} else {
 								util.SendNotFound(response);
 							}

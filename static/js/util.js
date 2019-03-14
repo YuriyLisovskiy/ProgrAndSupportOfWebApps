@@ -27,7 +27,7 @@ let sendAjax = ({method, url, params, headers, success, error}) => {
 		if (request.status < 400) {
 			success(JSON.parse(request.responseText));
 		} else {
-			error(request.responseText);
+			error({detail: JSON.parse(request.responseText), status: request.status});
 		}
 	}, false);
 	if (params) {
@@ -95,9 +95,11 @@ let refreshData = (data, container, createFunction, currPage, moreBtn, root, lis
 		for (let i = 0; i < data[dataName].length; i++) {
 			container.appendChild(createFunction(data[dataName][i]));
 		}
-		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
-			moreBtn.removeEventListener('click', listener);
-			moreBtn.parentNode.removeChild(moreBtn);
+		if (data.pages) {
+			if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+				moreBtn.removeEventListener('click', listener);
+				moreBtn.parentNode.removeChild(moreBtn);
+			}
 		}
 	} else {
 		appendNoDataMessage(root, 'No ' + dataName);
@@ -116,7 +118,7 @@ let loadPage = (url, limit, page, container, createFn, moreBtn, root, listener, 
 			refreshFunction(data, container, createFn, page, moreBtn, root, listener, dataName);
 		},
 		error: (data) => {
-			alert(data);
+			alert(data.detail.detail);
 		}
 	});
 };
