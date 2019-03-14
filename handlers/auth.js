@@ -62,11 +62,31 @@ let Register = (request, response) => {
 							credentials.email,
 							credentials.password,
 							() => {
-								util.SendSuccessResponse(response, 201, {detail: 'registration is successful'});
+								db.getUser(credentials.username, credentials.email,
+									(item) => {
+										jwt.sign(item, settings.SecretKey, { expiresIn: '1h' }, (err, token) => {
+											if (err) {
+												util.SendBadRequest(response);
+											} else {
+												util.SendSuccessResponse(response, 201, {
+													key: token,
+													user: {
+														username: item.username,
+														is_superuser: item.is_superuser
+													}
+												});
+											}
+										});
+									},
+									(err) => {
+										console.log('[ERROR] auth.Register, post, getUser: ' + err.detail);
+										util.SendInternalServerError(response, err.detail);
+									}
+								);
 							},
 							(err) => {
-								console.log(err);
-								util.SendBadRequest(response, err);
+								console.log('[ERROR] auth.Register, post, createUser: ' + err.detail);
+								util.SendInternalServerError(response, err.detail);
 							}
 						);
 					}

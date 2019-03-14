@@ -56,7 +56,7 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 					if (user) {
 						request.user = user;
 						request.user.is_authenticated = true;
-						db.countGoodsAmountInUserCart(user.username,
+						db.countGoodsAmountInUserCart(user.id,
 							(goods_amount) => {
 								if (!goods_amount) {
 									goods_amount = 0;
@@ -99,7 +99,8 @@ let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 				if (user) {
 					request['user'] = user;
 					request.user['is_authenticated'] = true;
-					db.countGoodsAmountInUserCart(user.username,
+					delete request.user.password;
+					db.countGoodsAmountInUserCart(user.id,
 						(goods_amount) => {
 							request.user['goods_in_cart_num'] = goods_amount;
 							HandleRequest(

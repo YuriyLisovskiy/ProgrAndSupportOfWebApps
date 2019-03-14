@@ -19,13 +19,13 @@ module.exports = {
 						(item) => {
 							if (item) {
 								db.getCart(
-									request.user.username,
+									request.user.id,
 									(cart) => {
 										let addGoods = (cart_id) => {
 											db.addGoodsToCart(
 												cart_id, item.code, request.body.amount,
-												() => {
-													util.SendSuccessResponse(response, 201, 'added goods to cart');
+												(id, amount) => {
+													util.SendSuccessResponse(response, 201, {amount: amount});
 												},
 												(err) => {
 													console.log('[ERROR] cart.GoodsAdd, addGoodsToCart: ' + err.detail);
@@ -35,7 +35,7 @@ module.exports = {
 										};
 										if (!cart) {
 											db.createCart(
-												request.user.username,
+												request.user.id,
 												(cart_id) => {
 													addGoods(cart_id);
 												}
@@ -77,13 +77,13 @@ module.exports = {
 						(item) => {
 							if (item) {
 								db.getCart(
-									request.user.username,
+									request.user.id,
 									(cart) => {
 										if (cart) {
 											db.removeGoodsFromCart(
 												cart.id, item.code, request.body.amount,
-												() => {
-													util.SendSuccessResponse(response, 201, 'added goods to cart');
+												(id, amount) => {
+													util.SendSuccessResponse(response, 201, {amount: amount});
 												},
 												(err) => {
 													console.log('[ERROR] cart.GoodsRemove, addGoodsToCart: ' + err.detail);

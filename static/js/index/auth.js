@@ -32,7 +32,8 @@ let register = () => {
 					email: email,
 					password: password
 				},
-				success: () => {
+				success: (data) => {
+					util.setCookie('auth_token', data['key'], 1);
 					location.reload();
 				},
 				error: (data) => {

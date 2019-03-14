@@ -14,51 +14,64 @@ class Db {
 	createDb() {
 		let query = this.db.prepare(`
           CREATE TABLE IF NOT EXISTS Users (
-                                             id            INTEGER       PRIMARY KEY,
-                                             username      VARCHAR(100)  UNIQUE NOT NULL,
-                                             email         VARCHAR(255)  UNIQUE NOT NULL,
-                                             password      VARCHAR(100)  NOT NULL,
-                                             first_name    VARCHAR(100)  NULL,
-                                             last_name     VARCHAR(100)  NULL,
-                                             address       VARCHAR(500)  NULL,
-                                             phone         VARCHAR(50)   NULL,
-                                             is_superuser  BOOLEAN       DEFAULT FALSE
-          );
+		    id            INTEGER       PRIMARY KEY,
+		    username      VARCHAR(100)  UNIQUE NOT NULL,
+		    email         VARCHAR(255)  UNIQUE NOT NULL,
+		    password      VARCHAR(100)  NOT NULL,
+		    first_name    VARCHAR(100)  NULL,
+		    last_name     VARCHAR(100)  NULL,
+		    address       VARCHAR(500)  NULL,
+		    phone         VARCHAR(50)   NULL,
+		    is_superuser  BOOLEAN       DEFAULT FALSE
+		);
+		
+		CREATE TABLE IF NOT EXISTS Promotions (
+		    id            INTEGER       PRIMARY KEY,
+		    percentage    INTEGER       DEFAULT 0,
+		    comment       VARCHAR(255)  NULL
+		);
+		
+		CREATE TABLE IF NOT EXISTS Goods (
+		    code          INTEGER       PRIMARY KEY,
+		    title         VARCHAR(255)  NOT NULL,
+		    price         DECIMAL       NOT NULL,
+		    image         VARCHAR(500)  NULL,
+		    description   TEXT DEFAULT  NULL,
+		    promotion     INTEGER       NULL,
+		
+		    FOREIGN KEY(promotion) REFERENCES Promotions(id)
+		);
+		
+		CREATE TABLE IF NOT EXISTS Carts (
+		    id                INTEGER       PRIMARY KEY,
+		    user_id           INTEGER(100)  UNIQUE,
+		
+		    FOREIGN KEY(user_id) REFERENCES Users(id)
+		);
+		
+		CREATE TABLE IF NOT EXISTS GoodsCarts (
+		    goods_code  INTEGER NOT NULL,
+		    cart_id     INTEGER NOT NULL,
+		    amount      INTEGER DEFAULT 1,
+		
+		    FOREIGN KEY(goods_code) REFERENCES Goods(code),
+		    FOREIGN KEY(cart_id) REFERENCES Carts(id),
+		
+		    PRIMARY KEY (goods_code, cart_id)
+		);
 
-          CREATE TABLE IF NOT EXISTS Promotions (
-                                                  id            INTEGER       PRIMARY KEY,
-                                                  percentage    INTEGER       DEFAULT 0,
-                                                  comment       VARCHAR(255)  NULL
-          );
-
-          CREATE TABLE IF NOT EXISTS Goods (
-                                             code          INTEGER       PRIMARY KEY,
-                                             title         VARCHAR(255)  NOT NULL,
-                                             price         DECIMAL       NOT NULL,
-                                             image         VARCHAR(500)  NULL,
-                                             description   TEXT DEFAULT  NULL,
-                                             promotion     INTEGER       NULL,
-
-                                             FOREIGN KEY(promotion) REFERENCES Promotions(id)
-          );
-
-          CREATE TABLE IF NOT EXISTS Carts (
-                                             id                INTEGER       PRIMARY KEY,
-                                             user_id           INTEGER(100)  UNIQUE,
-
-                                             FOREIGN KEY(user_id) REFERENCES Users(id)
-          );
-
-          CREATE TABLE IF NOT EXISTS GoodsCarts (
-                                                  goods_code  INTEGER NOT NULL,
-                                                  cart_id     INTEGER NOT NULL,
-                                                  amount      INTEGER DEFAULT 1,
-
-                                                  FOREIGN KEY(goods_code) REFERENCES Goods(code),
-                                                  FOREIGN KEY(cart_id) REFERENCES Carts(id),
-
-                                                  PRIMARY KEY (goods_code, cart_id)
-          );
+		CREATE TABLE IF NOT EXISTS Orders (
+		  id                  INTEGER       PRIMARY KEY,
+		  status              VARCHAR(20)   NOT NULL,
+		  destination_address VARCHAR(500)  NOT NULL,
+		  u_first_name        VARCHAR(100)  NOT NULL,
+		  u_last_name         VARCHAR(100)  NOT NULL,
+		  u_phone             VARCHAR(50)   NOT NULL,
+		  u_email             VARCHAR(255)  NOT NULL,
+		  user_id             INTEGER       NOT NULL,
+		
+		  FOREIGN KEY(user_id) REFERENCES Users(id)
+		);
 `);
 		query.run((err) => {
 			if (err) {
@@ -118,15 +131,57 @@ class Db {
 		);
 	}
 
-	getAllGoods(user_pk, success, failed) {
+	updateUser(item, success, failed) {
+		let query = this.db.prepare(`
+			UPDATE Users
+			  SET username = ?,
+			  	  email = ?,
+			  	  password = ?,
+			      first_name = ?,
+			      last_name = ?,
+			      address = ?,
+			      phone = ?,
+			      is_superuser = ?
+			  WHERE id = ?
+		`);
+		query.run([
+			item.username,
+			item.email,
+			item.password,
+			item.first_name,
+			item.last_name,
+			item.address,
+			item.phone,
+			item.is_superuser,
+			item.id
+		], function(err) {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success(this.lastID);
+			}
+		});
+	}
+
+	getAllGoods(cart_pk, success, failed) {
 		this.getData(`
 			SELECT Goods.code, Goods.title, Goods.price, Goods.description,
 			       Promotions.percentage as discount_percentage,
 			       GoodsCarts.goods_code IS NOT NULL as is_in_cart
 			FROM Goods
 			LEFT JOIN Promotions ON Promotions.id = Goods.promotion
-			LEFT JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code
-			LEFT JOIN Carts ON Carts.id = GoodsCarts.cart_id AND Carts.user_id = ?
+			LEFT JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code AND GoodsCarts.cart_id = ?
+		`, [cart_pk], success, failed);
+	}
+
+	getGoodsByUserCart(user_pk, success, failed) {
+		this.getData(`
+            SELECT Goods.code, Goods.title, Goods.price, Goods.description,
+                 Promotions.percentage as discount_percentage, GoodsCarts.amount 
+			FROM Goods
+            LEFT JOIN Promotions ON Promotions.id = Goods.promotion
+            JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code
+            JOIN Carts ON Carts.id = GoodsCarts.cart_id AND Carts.user_id = ?
 		`, [user_pk], success, failed);
 	}
 
@@ -313,7 +368,7 @@ class Db {
 							if (err) {
 								failed(err);
 							} else {
-								success(this.lastID);
+								success(this.lastID, data.amount + amount);
 							}
 						}
 					);
@@ -323,7 +378,7 @@ class Db {
 							if (err) {
 								failed(err);
 							} else {
-								success(this.lastID);
+								success(this.lastID, amount);
 							}
 						}
 					);
@@ -345,7 +400,7 @@ class Db {
 							if (err) {
 								failed(err);
 							} else {
-								success(this.lastID);
+								success(this.lastID, 0);
 							}
 						});
 					} else {
@@ -358,7 +413,7 @@ class Db {
 								if (err) {
 									failed(err);
 								} else {
-									success(this.lastID);
+									success(this.lastID, data.amount - amount);
 								}
 							}
 						);
@@ -372,7 +427,7 @@ class Db {
 
 	countGoodsAmountInUserCart(user_pk, success, failed) {
 		this.db.get(`
-			SELECT Sum(GoodsCarts.amount) as goods_amount
+			SELECT Count(GoodsCarts.amount) as goods_amount
 			FROM Carts
 			JOIN GoodsCarts ON GoodsCarts.cart_id = Carts.id
 				AND Carts.user_id = ?;
@@ -380,7 +435,11 @@ class Db {
 			if (err) {
 				failed({detail: err});
 			} else {
-				success(data.goods_amount);
+				let res = 0;
+				if (data.goods_amount) {
+					res = data.goods_amount;
+				}
+				success(res);
 			}
 		});
 	}

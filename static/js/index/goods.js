@@ -120,7 +120,7 @@ let createGoodsItem = (item) => {
 					if (err.status === 403) {
 						document.getElementById('btn-open-login').click();
 					} else {
-						alert(err.detail);
+						alert(err.detail.detail);
 					}
 				}
 			});
