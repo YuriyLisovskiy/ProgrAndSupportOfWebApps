@@ -118,7 +118,7 @@ let loadPage = (url, limit, page, container, createFn, moreBtn, root, listener, 
 			refreshFunction(data, container, createFn, page, moreBtn, root, listener, dataName);
 		},
 		error: (data) => {
-			alert(data);
+			alert(data.detail.detail);
 		}
 	});
 };

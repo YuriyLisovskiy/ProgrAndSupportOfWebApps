@@ -22,6 +22,8 @@ block body
             li(class="nav-item")
                 a(class="nav-link", id="profile-tab", data-toggle="tab", href="#profile") Profile
             li(class="nav-item")
+                a(class="nav-link", id="orders-tab", data-toggle="tab", href="#orders") Orders
+            li(class="nav-item")
                 a(class="nav-link", id="cart-tab", data-toggle="tab", href="#cart") Cart
         div(class="tab-content")
             div(id="profile", class="container tab-pane")
@@ -43,7 +45,7 @@ block body
                         label(for="email", class="col-sm-6") Email:
                             input(value=user.email, type="email", name="email", class="form-control", id="email", placeholder="username@example.com", required)
                     button(type="submit", id="save-profile", class="btn btn-success") Save
-            div(id="orders-tab", class="container tab-pane")
+            div(id="orders", class="container tab-pane")
                 br
                 table(class="table", id="orders-table")
                     thead(class="thead-light")

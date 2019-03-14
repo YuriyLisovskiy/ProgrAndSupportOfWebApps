@@ -26,7 +26,7 @@ let createTableBase = () => {
 	thead.appendChild(tr);
 
 	let tbody = document.createElement('tbody');
-	tbody.id = 'promotion-goods-tbody';
+	tbody.id = 'order-goods-tbody';
 
 	let table = document.createElement('table');
 	table.className = 'table';
@@ -47,7 +47,7 @@ let createOrderedGoodsRow = (item) => {
 	amount.appendChild(document.createTextNode(item.amount));
 
 	let totalSum = document.createElement('th');
-	totalSum.appendChild(document.createTextNode(item.total_sum));
+	totalSum.appendChild(document.createTextNode('$' + item.total_sum.toFixed(2)));
 
 	let tr = document.createElement('tr');
 	tr.appendChild(id);
@@ -75,20 +75,20 @@ function refreshOrderedGoods(data, item, root) {
 
 let createOrderRow = (item) => {
 	let firstName = document.createElement('th');
-	firstName.appendChild(document.createTextNode(item.first_name));
+	firstName.appendChild(document.createTextNode(item.u_first_name));
 
 	let lastName = document.createElement('th');
-	lastName.appendChild(document.createTextNode(item.last_name));
+	lastName.appendChild(document.createTextNode(item.u_last_name));
 
 	let destination = document.createElement('th');
 	destination.appendChild(document.createTextNode(item.destination_address));
 
 	let phone = document.createElement('th');
-	phone.appendChild(document.createTextNode(item.phone));
+	phone.appendChild(document.createTextNode(item.u_phone));
 
 	let email = document.createElement('th');
 	if (item.email) {
-		email.appendChild(document.createTextNode(item.email));
+		email.appendChild(document.createTextNode(item.u_email));
 	} else {
 		email.className = 'text-muted';
 		email.style.textAlign = 'center';

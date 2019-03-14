@@ -487,7 +487,7 @@ class Db {
 	getOrders(user_pk, success, failed) {
 		this.getData(`
 			SELECT * FROM Orders
-			WHERE user_pk = ?;
+			WHERE user_id = ?;
 		`, [user_pk], success, failed);
 	}
 
@@ -547,10 +547,6 @@ class Db {
 						}
 					}
 					query += ';';
-
-					console.log(params);
-					console.log('\n\n', query);
-
 					insertGoods(query, params);
 				}
 			}
