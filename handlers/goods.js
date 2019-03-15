@@ -59,14 +59,27 @@ module.exports = {
 				}
 			},
 			delete_: (request, response) => {
-				db.deleteGoods(request.body.goods_code,
-					() => {
-						util.SendSuccessResponse(response, 201, {detail: 'goods item is deleted'})
-					},
-					(err) => {
-						util.SendInternalServerError(response, err);
-					}
-				);
+				if (request.user && request.user.is_superuser) {
+					db.deleteGoods(request.body.goods_code,
+						() => {
+							db.deleteGoodsFromCart(
+								request.body.goods_code,
+								() => {
+									util.SendSuccessResponse(response, 201, {detail: 'goods item is deleted'})
+								},
+								(err) => {
+									console.log('[ERROR] cart.GoodsRemove, deleteGoodsFromCart: ' + err.detail);
+									util.SendInternalServerError(response);
+								}
+							);
+						},
+						(err) => {
+							util.SendInternalServerError(response, err);
+						}
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			}
 		});
 	}

@@ -87,7 +87,7 @@ let createOrderRow = (item) => {
 	phone.appendChild(document.createTextNode(item.u_phone));
 
 	let email = document.createElement('th');
-	if (item.email) {
+	if (item.u_email) {
 		email.appendChild(document.createTextNode(item.u_email));
 	} else {
 		email.className = 'text-muted';

@@ -176,7 +176,7 @@ class Db {
 
 	getAllGoods(cart_pk, success, failed) {
 		this.getData(`
-			SELECT Goods.code, Goods.title, Goods.price, Goods.description,
+			SELECT Goods.code, Goods.title, Goods.price, Goods.description, Goods.image,
 			       Promotions.percentage as discount_percentage,
 			       GoodsCarts.goods_code IS NOT NULL as is_in_cart
 			FROM Goods
@@ -187,8 +187,8 @@ class Db {
 
 	getGoodsByUserCart(user_pk, success, failed) {
 		this.getData(`
-            SELECT Goods.code, Goods.title, Goods.price, Goods.description,
-                 Promotions.percentage as discount_percentage, GoodsCarts.amount 
+            SELECT Goods.code, Goods.title, Goods.price, Goods.description, Goods.image,
+                 Promotions.percentage as discount_percentage, GoodsCarts.amount
 			FROM Goods
             LEFT JOIN Promotions ON Promotions.id = Goods.promotion
             JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code
@@ -216,7 +216,7 @@ class Db {
 	joinGoodsAndPromotion(promotion, success, failed) {
 		this.getData(
 			`
-					SELECT Goods.code, Goods.title, Goods.price, Promotions.percentage as discount_price
+					SELECT Goods.code, Goods.title, Goods.price, Goods.image, Promotions.percentage as discount_price
 				  	FROM Goods
 					JOIN Promotions ON Promotions.id = Goods.promotion
 					WHERE Goods.promotion = ?;
@@ -240,9 +240,9 @@ class Db {
 		);
 	}
 
-	createGoods(title, price, description, promotion, success, failed) {
+	createGoods(title, price, description, image, promotion, success, failed) {
 		let query = this.db.prepare(`INSERT INTO Goods (title, price, description, image, promotion) VALUES (?, ?, ?, ?, ?);`);
-		query.run([title, price, description, null, promotion], function(err) {
+		query.run([title, price, description, image, promotion], function(err) {
 				if (err) {
 					failed({detail: err});
 				} else {
@@ -275,11 +275,11 @@ class Db {
 
 	deleteGoods(code, success, failed) {
 		let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
-		query.run([code], (err) => {
+		query.run([code], function(err) {
 				if (err) {
 					failed({detail: err});
 				} else {
-					success();
+					success(this.lastID);
 				}
 			}
 		);
@@ -434,6 +434,19 @@ class Db {
 				}
 			}
 		);
+	}
+
+	deleteGoodsFromCart(goods_pk, success, failed) {
+		let query = this.db.prepare(`
+				DELETE FROM GoodsCarts WHERE GoodsCarts.goods_code = ?;
+		`);
+		query.run([goods_pk], (err) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success();
+			}
+		});
 	}
 
 	deleteCartData(cart_pk, success, failed) {

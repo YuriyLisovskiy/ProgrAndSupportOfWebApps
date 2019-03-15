@@ -55,7 +55,7 @@ block body
                         button(class="btn btn-secondary", id="show-more-goods-tab") Load more
                     div(id="create-goods", class="container tab-pane fade")
                         br
-                        form(method="post")
+                        form(method="post", enctype="multipart/form-data")
                             div(class="form-group row")
                                 label(for="goods-title" class="col-sm-4") Title:
                                     input(type="text", name="title", class="form-control", id="goods-title", placeholder="Type text...", required)

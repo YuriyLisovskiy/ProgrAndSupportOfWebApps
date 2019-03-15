@@ -1,6 +1,7 @@
 let express = require('express');
 let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
+let path = require('path');
 
 let router = require('./routes/index');
 
@@ -13,6 +14,8 @@ app.use(cookieParser());
 app.set('view engine', 'jade');
 
 app.use('/static', express.static('static'));
+app.use('/media', express.static('media'));
+
 app.use('/', router);
 
 app.use(function(req, res){

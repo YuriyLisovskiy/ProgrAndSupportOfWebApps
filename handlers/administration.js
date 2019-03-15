@@ -25,18 +25,25 @@ module.exports = {
 			},
 			post: (request, response) => {
 				if (request.user.is_superuser) {
-					let data = request.body;
-					let promotionId = null;
-					if (data.promotion !== 'none') {
-						promotionId = data.promotion;
-					}
-					db.createGoods(data.title, parseFloat(data.price), data.description, promotionId,
-						() => {
-							response.redirect('/administration');
+					util.UploadFile(request, 'picture',
+						(data, filePath) => {
+							let promotionId = null;
+							if (data.promotion !== 'none') {
+								promotionId = data.promotion;
+							}
+							db.createGoods(data.title, parseFloat(data.price), data.description, filePath, promotionId,
+								() => {
+									response.redirect('/administration');
+								},
+								(err) => {
+									console.log(err.detail);
+									util.SendBadRequest(response, err);
+								}
+							);
 						},
 						(err) => {
-							console.log(err);
-							util.SendBadRequest(response, err);
+							console.log('[ERROR] administration.Administration, UploadFile, post: ' + err.detail);
+							util.SendInternalServerError(response);
 						}
 					);
 				} else {
@@ -82,45 +89,45 @@ module.exports = {
 			},
 			post: (request, response) => {
 				if (request.user.is_superuser) {
-					let data = request.body;
-					db.getGoodsById(
-						request.params[0],
-						(item) => {
-							if (item) {
-								/*
-								if (data.image === '') {
-									item.image = null;
-								} else {
-									item.image = data.image;
-								}
-								*/
-								if (data.title) {
-									item.title = data.title;
-								}
-								if (data.price) {
-									item.price = data.price;
-								}
-								item.image = null;
-								if (data.description) {
-									item.description = data.description;
-								}
-								if (data.promotion !== 'none') {
-									item.promotion = data.promotion;
-								}
-								db.updateGoods(
-									item,
-									() => {response.redirect('/administration');},
-									(err) => {
-										console.log(err);
-										util.SendInternalServerError(response);
+					util.UploadFile(request, 'picture',
+						(data, filePath) => {
+							db.getGoodsById(
+								request.params[0],
+								(item) => {
+									if (item) {
+										item.image = filePath;
+										if (data.title) {
+											item.title = data.title;
+										}
+										if (data.price) {
+											item.price = data.price;
+										}
+										if (data.description) {
+											item.description = data.description;
+										}
+										if (data.promotion !== 'none') {
+											item.promotion = data.promotion;
+										}
+										db.updateGoods(
+											item,
+											() => {response.redirect('/administration');},
+											(err) => {
+												console.log(err);
+												util.SendInternalServerError(response);
+											}
+										);
+									} else {
+										util.SendNotFound(response);
 									}
-								);
-							} else {
-								util.SendNotFound(response);
-							}
+								},
+								(err) => {
+									console.log(err);
+									util.SendInternalServerError(response);
+								}
+							);
 						},
 						(err) => {
-							console.log(err);
+							console.log('[ERROR] administration.Administration, UploadFile, post: ' + err.detail);
 							util.SendInternalServerError(response);
 						}
 					);

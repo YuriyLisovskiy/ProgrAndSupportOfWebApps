@@ -63,5 +63,6 @@ typings/
 # WebStorm
 .idea/
 
-# Databases
+# Local
 shop.db
+media/
