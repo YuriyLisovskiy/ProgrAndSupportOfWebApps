@@ -17,12 +17,22 @@ block body
                     button(type="button" class="close" data-dismiss="modal") &times;
                 div(class="modal-body", id="promotion-goods-modal-body")
     div(class="container")
+        div(class="modal fade", id="orderedGoodsModal")
+            div(class="modal-dialog")
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h4(class="modal-title" id="order-modal-title")
+                        button(type="button" class="close" data-dismiss="modal") &times;
+                    div(class="modal-body", id="ordered-goods-modal-body")
+    div(class="container")
         h3(class="admin-title") Administration
         ul(class="nav nav-tabs", role="tablist")
             li(class="nav-item")
                 a(class="nav-link", data-toggle="tab", id="goods-tab", href="#goods") Goods
             li(class="nav-item")
                 a(class="nav-link", data-toggle="tab", id="promotions-tab", href="#promotions") Promotions
+            li(class="nav-item")
+                a(class="nav-link", id="orders-tab", data-toggle="tab", href="#orders") Orders
         div(class="tab-content")
             div(id="goods", class="container tab-pane")
                 br
@@ -98,7 +108,22 @@ block body
                                 button(type="button", class="btn btn-secondary", id="select-goods-reload-btn")
                                     i(class="fa fa-refresh", aria-hidden="true")
                             button(type="submit", id="save-promotion", class="btn btn-success") Save
+            div(id="orders", class="container tab-pane")
+                br
+                table(class="table", id="orders-table")
+                    thead(class="thead-light")
+                        tr
+                            th First name
+                            th Last name
+                            th Destination
+                            th Phone
+                            th Email
+                            th Goods
+                            th Status
+                    tbody(id="orders-table-body")
+                button(class="btn btn-secondary", id="show-more-orders") Load more
 
 block footer
     script(type="module", src="/static/js/administration/goods.js")
     script(type="module", src="/static/js/administration/promotions.js")
+    script(type="module", src="/static/js/administration/orders.js")

@@ -452,10 +452,11 @@ class Db {
 		});
 	}
 
-	setOrderStatus(newStatus, success, failed) {
+	setOrderStatus(order_pk, newStatus, success, failed) {
 		this.db.prepare(`
 			UPDATE Orders
-			  SET status = ${newStatus};
+			  SET status = ${newStatus}
+			WHERE Orders.id = ${order_pk};
 		`).run((err) => {
 			if (err) {
 				failed({detail: err});
@@ -489,6 +490,12 @@ class Db {
 			SELECT * FROM Orders
 			WHERE user_id = ?;
 		`, [user_pk], success, failed);
+	}
+
+	getAllOrders(success, failed) {
+		this.getData(`
+			SELECT * FROM Orders;
+		`, [], success, failed);
 	}
 
 	getOrder(order_id, success, failed) {

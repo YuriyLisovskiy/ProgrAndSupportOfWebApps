@@ -25,7 +25,8 @@ router.get('/api/promotions', AdministrationViews.Promotions);
 router.get('/api/goods', GoodsView.Goods);
 router.get('/api/promotion/goods', AdministrationViews.PromotionGoods);
 router.get('/api/user/orders', OrderViews.GetOrders);
-router.get('/api/user/orders/goods', OrderViews.GetOrderedGoods);
+router.get('/api/orders/goods', OrderViews.GetOrderedGoods);
+router.get('/api/orders/all', AdministrationViews.Orders);
 
 router.post('/api/login', AuthViews.Login);
 router.post('/api/register', AuthViews.Register);
@@ -37,6 +38,7 @@ router.post('/api/cart/goods/add', CartViews.GoodsAdd);
 router.post('/api/cart/goods/remove', CartViews.GoodsRemove);
 
 router.put('/api/promotion/goods', AdministrationViews.PromotionGoods);
+router.put('/api/orders/all', AdministrationViews.Orders);
 
 router.delete('/api/goods', GoodsView.Goods);
 router.delete('/api/promotions', AdministrationViews.Promotions);

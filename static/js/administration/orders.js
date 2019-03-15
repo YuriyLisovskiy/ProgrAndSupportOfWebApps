@@ -135,8 +135,38 @@ let createOrderRow = (item) => {
 		}
 	};
 
-	let status = document.createElement('th');
-	status.appendChild(document.createTextNode(codeToStatus(parseInt(item.status))));
+	let selection = document.createElement('select');
+	for (let i = 0; i < 4; i++) {
+		let option = document.createElement('option');
+		option.setAttribute('value', i.toString());
+		option.appendChild(document.createTextNode(codeToStatus(i)));
+		if (i === parseInt(item.status)) {
+			option.setAttribute('selected', 'selected');
+		}
+		selection.appendChild(option);
+	}
+	selection.className = 'form-control';
+	selection.addEventListener('change', () => {
+		util.sendAjax({
+			method: 'PUT',
+			url: '/api/orders/all',
+			params: {
+				order_id: item.id,
+				status: selection.value
+			},
+			success: () => {},
+			error: (err) => {
+				alert(err.detail.detail);
+			}
+		});
+	});
+
+	let statusDiv = document.createElement('div');
+	statusDiv.className = 'form-group';
+	statusDiv.appendChild(selection);
+
+	let statusTh = document.createElement('th');
+	statusTh.appendChild(statusDiv);
 
 	let tr = document.createElement('tr');
 	tr.appendChild(firstName);
@@ -145,7 +175,7 @@ let createOrderRow = (item) => {
 	tr.appendChild(phone);
 	tr.appendChild(email);
 	tr.appendChild(btnViewTh);
-	tr.appendChild(status);
+	tr.appendChild(statusTh);
 
 	return tr;
 };
@@ -154,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 	let showMoreOrders = document.getElementById('show-more-orders');
 	showMoreOrders.addEventListener('click', function showMoreOrders() {
 		util.loadPage(
-			'/api/user/orders',
+			'/api/orders/all',
 			10,
 			page,
 			document.getElementById('orders-table-body'),

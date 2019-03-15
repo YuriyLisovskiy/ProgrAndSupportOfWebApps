@@ -24,20 +24,24 @@ module.exports = {
 				}
 			},
 			post: (request, response) => {
-				let data = request.body;
-				let promotionId = null;
-				if (data.promotion !== 'none') {
-					promotionId = data.promotion;
-				}
-				db.createGoods(data.title, parseFloat(data.price), data.description, promotionId,
-					() => {
-						response.redirect('/administration');
-					},
-					(err) => {
-						console.log(err);
-						util.SendBadRequest(response, err);
+				if (request.user.is_superuser) {
+					let data = request.body;
+					let promotionId = null;
+					if (data.promotion !== 'none') {
+						promotionId = data.promotion;
 					}
-				);
+					db.createGoods(data.title, parseFloat(data.price), data.description, promotionId,
+						() => {
+							response.redirect('/administration');
+						},
+						(err) => {
+							console.log(err);
+							util.SendBadRequest(response, err);
+						}
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			}
 		});
 	},
@@ -77,48 +81,52 @@ module.exports = {
 				}
 			},
 			post: (request, response) => {
-				let data = request.body;
-				db.getGoodsById(
-					request.params[0],
-					(item) => {
-						if (item) {
-							/*
-							if (data.image === '') {
-								item.image = null;
-							} else {
-								item.image = data.image;
-							}
-							*/
-							if (data.title) {
-								item.title = data.title;
-							}
-							if (data.price) {
-								item.price = data.price;
-							}
-							item.image = null;
-							if (data.description) {
-								item.description = data.description;
-							}
-							if (data.promotion !== 'none') {
-								item.promotion = data.promotion;
-							}
-							db.updateGoods(
-								item,
-								() => {response.redirect('/administration');},
-								(err) => {
-									console.log(err);
-									util.SendInternalServerError(response);
+				if (request.user.is_superuser) {
+					let data = request.body;
+					db.getGoodsById(
+						request.params[0],
+						(item) => {
+							if (item) {
+								/*
+								if (data.image === '') {
+									item.image = null;
+								} else {
+									item.image = data.image;
 								}
-							);
-						} else {
-							util.SendNotFound(response);
+								*/
+								if (data.title) {
+									item.title = data.title;
+								}
+								if (data.price) {
+									item.price = data.price;
+								}
+								item.image = null;
+								if (data.description) {
+									item.description = data.description;
+								}
+								if (data.promotion !== 'none') {
+									item.promotion = data.promotion;
+								}
+								db.updateGoods(
+									item,
+									() => {response.redirect('/administration');},
+									(err) => {
+										console.log(err);
+										util.SendInternalServerError(response);
+									}
+								);
+							} else {
+								util.SendNotFound(response);
+							}
+						},
+						(err) => {
+							console.log(err);
+							util.SendInternalServerError(response);
 						}
-					},
-					(err) => {
-						console.log(err);
-						util.SendInternalServerError(response);
-					}
-				);
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			}
 		});
 	},
@@ -146,53 +154,61 @@ module.exports = {
 				}
 			},
 			post: (request, response) => {
-				db.createPromotion(request.body.percentage, request.body.comment,
-					(promotionId) => {
-						if (request.body.goods) {
-							for (let i = 0; i < request.body.goods.length; i++) {
-								db.getGoodsById(request.body.goods[i],
-									(item) => {
-										item.promotion = promotionId;
-										db.updateGoods(item, () => {}, (err) => {
+				if (request.user.is_superuser) {
+					db.createPromotion(request.body.percentage, request.body.comment,
+						(promotionId) => {
+							if (request.body.goods) {
+								for (let i = 0; i < request.body.goods.length; i++) {
+									db.getGoodsById(request.body.goods[i],
+										(item) => {
+											item.promotion = promotionId;
+											db.updateGoods(item, () => {}, (err) => {
+												console.log(err);
+											});
+										},
+										(err) => {
 											console.log(err);
-										});
-									},
-									(err) => {
-										console.log(err);
-									}
-								);
+										}
+									);
+								}
 							}
+							response.redirect('/administration');
+						},
+						(err) => {
+							console.log(err);
+							util.SendInternalServerError(response, 'unable to create promotion');
 						}
-						response.redirect('/administration');
-					},
-					(err) => {
-						console.log(err);
-						util.SendInternalServerError(response, 'unable to create promotion');
-					}
-				)
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			},
 			delete_: (request, response) => {
-				db.deletePromotion(
-					request.body.promotion,
-					() => {
-						util.SendSuccessResponse(response, 201, 'Promotion is deleted');
-						db.filterGoodsByPromotion(
-							request.body.promotion,
-							(goods) => {
-								for (let i = 0; i < goods.length; i++) {
-									goods[i].promotion = null;
-									db.updateGoods(goods[i], () => {}, (err) => {console.log(err);});
+				if (request.user.is_superuser) {
+					db.deletePromotion(
+						request.body.promotion,
+						() => {
+							util.SendSuccessResponse(response, 201, 'Promotion is deleted');
+							db.filterGoodsByPromotion(
+								request.body.promotion,
+								(goods) => {
+									for (let i = 0; i < goods.length; i++) {
+										goods[i].promotion = null;
+										db.updateGoods(goods[i], () => {}, (err) => {console.log(err);});
+									}
+								},
+								(err) => {
+									console.log(err);
 								}
-							},
-							(err) => {
-								console.log(err);
-							}
-						);
-					},
-					(err) => {
-						console.log(err);
-					}
-				)
+							);
+						},
+						(err) => {
+							console.log(err);
+						}
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			}
 		});
 	},
@@ -221,34 +237,38 @@ module.exports = {
 				}
 			},
 			post: (request, response) => {
-				let data = request.body;
-				db.getPromotionById(
-					request.params[0],
-					(item) => {
-						if (item) {
-							if (data.percentage) {
-								item.percentage = data.percentage;
-							}
-							if (data.comment) {
-								item.comment = data.comment;
-							}
-							db.updatePromotion(
-								item,
-								() => {response.redirect('/administration');},
-								(err) => {
-									console.log(err);
-									util.SendInternalServerError(response);
+				if (request.user.is_superuser) {
+					let data = request.body;
+					db.getPromotionById(
+						request.params[0],
+						(item) => {
+							if (item) {
+								if (data.percentage) {
+									item.percentage = data.percentage;
 								}
-							);
-						} else {
-							util.SendNotFound(response);
+								if (data.comment) {
+									item.comment = data.comment;
+								}
+								db.updatePromotion(
+									item,
+									() => {response.redirect('/administration');},
+									(err) => {
+										console.log(err);
+										util.SendInternalServerError(response);
+									}
+								);
+							} else {
+								util.SendNotFound(response);
+							}
+						},
+						(err) => {
+							console.log(err);
+							util.SendInternalServerError(response);
 						}
-					},
-					(err) => {
-						console.log(err);
-						util.SendInternalServerError(response);
-					}
-				);
+					);
+				} else {
+					util.SendForbidden(response);
+				}
 			}
 		});
 	},
@@ -283,24 +303,75 @@ module.exports = {
 				}
 			},
 			put: (request, response) => {
-				let id = request.body.goods_code;
-				if (id) {
-					db.getGoodsById(id,
-						(item) => {
-							item.promotion = null;
-							db.updateGoods(item,
-								() => {
-									util.SendSuccessResponse(response, 201, item)
-								},
-								() => {
-									util.SendInternalServerError(response, 'Unable to update goods');
-								}
-							);
+				if (request.user.is_superuser) {
+					let id = request.body.goods_code;
+					if (id) {
+						db.getGoodsById(id,
+							(item) => {
+								item.promotion = null;
+								db.updateGoods(item,
+									() => {
+										util.SendSuccessResponse(response, 201, item)
+									},
+									() => {
+										util.SendInternalServerError(response, 'Unable to update goods');
+									}
+								);
+							},
+							() => {
+								util.SendNotFound(response, 'Goods not found')
+							}
+						);
+					}
+				} else {
+					util.SendForbidden(response);
+				}
+			}
+		});
+	},
+	Orders: function (request, response) {
+		util.HandleAuthRequest({
+			request: request,
+			response: response,
+			get: (request, response) => {
+				if (request.user.is_superuser) {
+					let page = request.query.page;
+					let limit = request.query.limit;
+					db.getAllOrders(
+						(orders) => {
+							util.SendSuccessResponse(response, 200, {
+								orders: orders.slice(limit * (page - 1), limit * page),
+								pages: Math.ceil(orders.length / limit)
+							});
 						},
 						() => {
-							util.SendNotFound(response, 'Goods not found')
+							util.SendInternalServerError(response);
 						}
 					);
+				} else {
+					util.SendForbidden(response);
+				}
+			},
+			put: (request, response) => {
+				if (request.user.is_superuser) {
+					let id = request.body.order_id;
+					if (id) {
+						if (request.body.status < 0 || request.body.status > 4) {
+							util.SendBadRequest(response, 'Invalid status');
+						} else {
+							db.setOrderStatus(id,
+								request.body.status,
+								() => {
+									util.SendSuccessResponse(response, 201, 'a new status has been set');
+								},
+								() => {
+									util.SendNotFound(response, 'Goods not found')
+								}
+							);
+						}
+					}
+				} else {
+					util.SendForbidden(response);
 				}
 			}
 		});

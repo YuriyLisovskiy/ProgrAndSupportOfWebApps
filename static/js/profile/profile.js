@@ -53,14 +53,27 @@ document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 	let cartDiv = document.getElementById('cart');
 	let cartTab = document.getElementById('cart-tab');
 
+	let ordersDiv = document.getElementById('orders');
+	let ordersTab = document.getElementById('orders-tab');
+	ordersTab.addEventListener('click', () => {
+		util.setCookie('active_tab_profile', 'orders', 1);
+	});
+
 	if (active_tab_profile && active_tab_profile === 'cart') {
 		profileDiv.className += ' fade';
+		ordersDiv.className += ' fade';
 		cartDiv.className += ' active show';
 		cartTab.className += ' active show';
-	} else {
+	} else if (active_tab_profile && active_tab_profile === 'profile') {
 		profileDiv.className += ' active show';
 		profileTab.className += ' active show';
 		cartDiv.className += ' fade';
+		ordersDiv.className += ' fade';
+	} else {
+		ordersDiv.className += ' active show';
+		ordersTab.className += ' active show';
+		cartDiv.className += ' fade';
+		profileDiv.className += ' fade';
 	}
 
 	let totalSumContainer = document.getElementById('total-sum');
