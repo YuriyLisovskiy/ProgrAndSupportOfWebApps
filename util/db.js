@@ -14,75 +14,76 @@ class Db {
 	createDb() {
 		let query = `
           CREATE TABLE IF NOT EXISTS Users (
-		    id            INTEGER       PRIMARY KEY,
-		    username      VARCHAR(100)  UNIQUE NOT NULL,
-		    email         VARCHAR(255)  UNIQUE NOT NULL,
-		    password      VARCHAR(100)  NOT NULL,
-		    first_name    VARCHAR(100)  NULL,
-		    last_name     VARCHAR(100)  NULL,
-		    address       VARCHAR(500)  NULL,
-		    phone         VARCHAR(50)   NULL,
-		    is_superuser  BOOLEAN       DEFAULT FALSE
-		);
-		
-		CREATE TABLE IF NOT EXISTS Promotions (
-		    id            INTEGER       PRIMARY KEY,
-		    percentage    INTEGER       DEFAULT 0,
-		    comment       VARCHAR(255)  NULL
-		);
-		
-		CREATE TABLE IF NOT EXISTS Goods (
-		    code          INTEGER       PRIMARY KEY,
-		    title         VARCHAR(255)  NOT NULL,
-		    price         DECIMAL       NOT NULL,
-		    image         VARCHAR(500)  NULL,
-		    description   TEXT DEFAULT  NULL,
-		    promotion     INTEGER       NULL,
-		
-		    FOREIGN KEY(promotion) REFERENCES Promotions(id)
-		);
-		
-		CREATE TABLE IF NOT EXISTS Carts (
-		    id                INTEGER       PRIMARY KEY,
-		    user_id           INTEGER(100)  UNIQUE,
-		
-		    FOREIGN KEY(user_id) REFERENCES Users(id)
-		);
-		
-		CREATE TABLE IF NOT EXISTS GoodsCarts (
-		    goods_code  INTEGER NOT NULL,
-		    cart_id     INTEGER NOT NULL,
-		    amount      INTEGER DEFAULT 1,
-		
-		    FOREIGN KEY(goods_code) REFERENCES Goods(code),
-		    FOREIGN KEY(cart_id) REFERENCES Carts(id),
-		
-		    PRIMARY KEY (goods_code, cart_id)
-		);
+            id            INTEGER       PRIMARY KEY,
+            username      VARCHAR(100)  UNIQUE NOT NULL,
+            email         VARCHAR(255)  UNIQUE NOT NULL,
+            password      VARCHAR(100)  NOT NULL,
+            first_name    VARCHAR(100)  NULL,
+            last_name     VARCHAR(100)  NULL,
+            address       VARCHAR(500)  NULL,
+            phone         VARCHAR(50)   NULL,
+            is_superuser  BOOLEAN       DEFAULT FALSE
+          );
 
-		CREATE TABLE IF NOT EXISTS Orders (
-		  	id                  INTEGER       PRIMARY KEY,
-          	status              VARCHAR(20)   DEFAULT 'In progress',
-		  	destination_address VARCHAR(500)  NOT NULL,
-		  	u_first_name        VARCHAR(100)  NOT NULL,
-		  	u_last_name         VARCHAR(100)  NOT NULL,
-		  	u_phone             VARCHAR(50)   NOT NULL,
-		  	u_email             VARCHAR(255)  NOT NULL,
-		  	user_id             INTEGER       NOT NULL,
-		
-		  	FOREIGN KEY(user_id) REFERENCES Users(id)
-		);
+          CREATE TABLE IF NOT EXISTS Promotions (
+            id            INTEGER       PRIMARY KEY,
+            percentage    INTEGER       DEFAULT 0,
+            comment       VARCHAR(255)  NULL
+          );
 
-        CREATE TABLE IF NOT EXISTS OrdersGoods (
-          	order_pk  INTEGER   NOT NULL,
-          	goods_pk  INTEGER   NOT NULL,
+          CREATE TABLE IF NOT EXISTS Goods (
+            code          INTEGER       PRIMARY KEY,
+            title         VARCHAR(255)  NOT NULL,
+            price         DECIMAL       NOT NULL,
+            image         VARCHAR(500)  NULL,
+            description   TEXT DEFAULT  NULL,
+            promotion     INTEGER       NULL,
+
+            FOREIGN KEY(promotion) REFERENCES Promotions(id)
+          );
+
+          CREATE TABLE IF NOT EXISTS Carts (
+            id                INTEGER       PRIMARY KEY,
+            user_id           INTEGER(100)  UNIQUE,
+
+            FOREIGN KEY(user_id) REFERENCES Users(id)
+          );
+
+          CREATE TABLE IF NOT EXISTS GoodsCarts (
+            goods_code  INTEGER NOT NULL,
+            cart_id     INTEGER NOT NULL,
+            amount      INTEGER DEFAULT 1,
+
+            FOREIGN KEY(goods_code) REFERENCES Goods(code),
+            FOREIGN KEY(cart_id) REFERENCES Carts(id),
+
+            PRIMARY KEY (goods_code, cart_id)
+          );
+
+          CREATE TABLE IF NOT EXISTS Orders (
+            id                  INTEGER       PRIMARY KEY,
+            status              INTEGER       DEFAULT 0,
+            destination_address VARCHAR(500)  NOT NULL,
+            u_first_name        VARCHAR(100)  NOT NULL,
+            u_last_name         VARCHAR(100)  NOT NULL,
+            u_phone             VARCHAR(50)   NOT NULL,
+            u_email             VARCHAR(255)  NULL,
+            user_id             INTEGER       NOT NULL,
+
+            FOREIGN KEY(user_id) REFERENCES Users(id)
+          );
+
+          CREATE TABLE IF NOT EXISTS OrdersGoods (
+            order_pk  INTEGER   NOT NULL,
+            goods_pk  INTEGER   NOT NULL,
             amount    INTEGER   DEFAULT 1,
+            total_sum INTEGER   NOT NULL,
 
-          	FOREIGN KEY(order_pk) REFERENCES Orders(id),
-          	FOREIGN KEY(goods_pk) REFERENCES Goods(code),
+            FOREIGN KEY(order_pk) REFERENCES Orders(id),
+            FOREIGN KEY(goods_pk) REFERENCES Goods(code),
 
-          	PRIMARY KEY (order_pk, goods_pk)
-        );
+            PRIMARY KEY (order_pk, goods_pk)
+          );
 `;
 		this.db.run(query, (err) => {
 			if (err) {
