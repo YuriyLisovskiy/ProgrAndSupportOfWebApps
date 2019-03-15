@@ -11,7 +11,13 @@ let createGoodsItem = (item) => {
 		img.src = 'https://vignette.wikia.nocookie.net/cartoonsserbia/images/4/42/Image-not-available_1.jpg/revision/latest?cb=20180603222946';
 	}
 	img.alt = 'Goods image';
-	img.style.height = '310px';
+	img.style.height = 'auto';
+	img.style.maxHeight = '310px';
+	img.style.width = '100%';
+
+	let imgDiv = document.createElement('div');
+	imgDiv.style.height = '310px';
+	imgDiv.appendChild(img);
 
 	let cardTitle = document.createElement('h4');
 	cardTitle.className = 'card-title';
@@ -141,7 +147,7 @@ let createGoodsItem = (item) => {
 	card.className = 'card ml-5 mb-5';
 	card.style.width = '300px';
 	card.style.height = 'auto';
-	card.appendChild(img);
+	card.appendChild(imgDiv);
 	card.appendChild(cardBody);
 
 	return card;
@@ -155,12 +161,12 @@ let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, li
 			row.appendChild(createFunction(data[dataName][i]));
 		}
 		root.appendChild(row);
-		if (parseInt(data['pages']) <= currPage && moreBtn != null) {
-			moreBtn.removeEventListener('click', listener);
-			moreBtn.parentNode.removeChild(moreBtn);
-		}
 	} else {
-		appendNoDataMessage(root, 'No ' + dataName);
+		util.appendNoDataMessage(root, 'No ' + dataName);
+	}
+	if (parseInt(data['pages']) <= currPage && moreBtn != null) {
+		moreBtn.removeEventListener('click', listener);
+		moreBtn.parentNode.removeChild(moreBtn);
 	}
 };
 
@@ -175,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
 			goodsPage,
 			null,
 			createGoodsItem,
-			this,
+			moreBtn,
 			document.getElementById('inner-container'),
 			moreBtnListener,
 			'goods',

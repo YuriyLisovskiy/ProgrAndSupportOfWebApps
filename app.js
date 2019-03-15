@@ -1,7 +1,7 @@
 let express = require('express');
 let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
-let path = require('path');
+let fs = require('fs');
 
 let router = require('./routes/index');
 
@@ -26,5 +26,7 @@ app.use(function(req, res){
 	}
 	res.type('txt').send('Not found');
 });
+
+fs.existsSync('./media') || fs.mkdirSync('./media');
 
 app.listen(3000, '127.0.0.1');

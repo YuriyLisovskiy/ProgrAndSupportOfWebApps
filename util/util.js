@@ -131,18 +131,22 @@ let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 let UploadFile = (request, keyword, success, failed) => {
 	let form = new formidable.IncomingForm();
 	form.parse(request, function (err, fields, files) {
-		let oldPath = files[keyword].path;
-		let now = new Date();
-		let dotPos = files[keyword].name.lastIndexOf('.');
-		let name = files[keyword].name.substring(0, dotPos) + now + files[keyword].name.substring(dotPos);
-		let newPath = path.resolve('./media/') + '/' + name;
-		mv(oldPath, newPath, function (err) {
-			if (err) {
-				failed({detail: err});
-			} else {
-				success(fields, '/media/' + name);
-			}
-		});
+		if (files[keyword].name.length > 0) {
+			let oldPath = files[keyword].path;
+			let now = new Date();
+			let dotPos = files[keyword].name.lastIndexOf('.');
+			let name = files[keyword].name.substring(0, dotPos) + now + files[keyword].name.substring(dotPos);
+			let newPath = path.resolve('./media/') + '/' + name;
+			mv(oldPath, newPath, function (err) {
+				if (err) {
+					failed({detail: err});
+				} else {
+					success(fields, '/media/' + name);
+				}
+			});
+		} else {
+			success(fields, null);
+		}
 	});
 };
 
