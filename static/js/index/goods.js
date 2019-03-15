@@ -63,8 +63,69 @@ let createGoodsItem = (item) => {
 	let btn = document.createElement('button');
 	btn.className = 'btn btn-success';
 	btn.style.float = 'right';
-	btn.setAttribute('value', item['code']);
-	btn.appendChild(document.createTextNode('Add to cart'));
+	let addBtnContent = (target, title, icon_name) => {
+		target.innerHTML = '';
+		let icon = document.createElement('i');
+		icon.className = 'fa ' + icon_name;
+		target.appendChild(icon);
+		target.appendChild(document.createTextNode(' ' + title));
+	};
+
+	if (item['is_in_cart']) {
+		btn.setAttribute('value', 'true');
+		addBtnContent(btn, 'Remove', 'fa-times');
+	} else {
+		btn.setAttribute('value', 'false');
+		addBtnContent(btn, 'Add', 'fa-cart-plus');
+	}
+
+	btn.addEventListener('click', function() {
+		let cartBadge = document.getElementById('btn-cart-badge');
+		if (this.value === 'false') {
+			util.sendAjax({
+				method: 'POST',
+				url: '/api/cart/goods/add',
+				params: {
+					goods_code: item['code'],
+					amount: 1
+				},
+				success: () => {
+					this.value = 'true';
+					addBtnContent(this, 'Remove', 'fa-times');
+					cartBadge.innerText = parseInt(cartBadge.innerText) + 1;
+				},
+				error: (err) => {
+					console.log(err.status);
+					if (err.status === 403) {
+						document.getElementById('btn-open-login').click();
+					} else {
+						alert(err.detail);
+					}
+				}
+			});
+		} else {
+			util.sendAjax({
+				method: 'POST',
+				url: '/api/cart/goods/remove',
+				params: {
+					goods_code: item['code'],
+					amount: 1
+				},
+				success: () => {
+					this.value = 'false';
+					addBtnContent(this, 'Add', 'fa-cart-plus');
+					cartBadge.innerText = parseInt(cartBadge.innerText) - 1;
+				},
+				error: (err) => {
+					if (err.status === 403) {
+						document.getElementById('btn-open-login').click();
+					} else {
+						alert(err.detail.detail);
+					}
+				}
+			});
+		}
+	});
 
 	let cardBody = document.createElement('div');
 	cardBody.className = 'card-body';
@@ -103,7 +164,7 @@ let refreshGoods = (data, container, createFunction, currPage, moreBtn, root, li
 	}
 };
 
-let onLoadedEvent = function () {
+document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
 	let moreBtn = document.createElement('button');
 	moreBtn.className = 'btn btn-secondary';
 	moreBtn.appendChild(document.createTextNode('Load more'));
@@ -125,6 +186,4 @@ let onLoadedEvent = function () {
 	moreBtn.click();
 	document.getElementById('container').appendChild(moreBtn);
 	document.removeEventListener('DOMContentLoaded', onLoadedEvent);
-};
-
-document.addEventListener('DOMContentLoaded', onLoadedEvent);
+});

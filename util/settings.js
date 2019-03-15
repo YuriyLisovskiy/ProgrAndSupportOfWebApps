@@ -5,6 +5,7 @@ const dbModule = require('./db');
 let db = null;
 if (!db) {
 	db = new dbModule.Db(dbPath);
+	db.createDb();
 }
 
 module.exports = {

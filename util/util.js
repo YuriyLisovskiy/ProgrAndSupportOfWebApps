@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 const settings = require('./settings');
+const formidable = require('formidable');
+const path = require('path');
+const mv = require('mv');
 
 let db = settings.Db;
 
@@ -14,36 +17,80 @@ let VerifyToken = (request, secret, success, failed) => {
 			}
 		});
 	} else {
-		failed({detail: 'header is undefined'});
+		failed({detail: 'token is undefined'});
 	}
 };
 
 let HandleRequest = ({request, response, get, post, put, delete_}) => {
-	if (!response.hasOwnProperty('send_json')) {
-		response['send_json'] = request.headers['accept'] === 'application/json';
-	}
-	if (request.method === 'GET') {
-		if (get) {
-			get(request, response);
+	let finished = () => {
+		delete request.user.password;
+
+		if (!response.hasOwnProperty('send_json')) {
+			response['send_json'] = request.headers['accept'] === 'application/json';
+		}
+		if (request.method === 'GET') {
+			if (get) {
+				get(request, response);
+			} else {
+				SendNotAcceptable(response);
+			}
+		} else if (request.method === 'POST') {
+			if (post) {
+				post(request, response);
+			} else {
+				SendNotAcceptable(response);
+			}
+		} else if (request.method === 'PUT') {
+			if (put) {
+				put(request, response);
+			} else {
+				SendNotAcceptable(response);
+			}
+		} else if (delete_) {
+			delete_(request, response);
 		} else {
 			SendNotAcceptable(response);
 		}
-	} else if (request.method === 'POST') {
-		if (post) {
-			post(request, response);
-		} else {
-			SendNotAcceptable(response);
-		}
-	} else if (request.method === 'PUT') {
-		if (put) {
-			put(request, response);
-		} else {
-			SendNotAcceptable(response);
-		}
-	} else if (delete_) {
-		delete_(request, response);
+	};
+	if (!request.user) {
+		VerifyToken(request, settings.SecretKey,
+			function (data) {
+				db.getUser(data.username, null, (user) => {
+					if (user) {
+						request.user = user;
+						request.user.is_authenticated = true;
+						db.countGoodsAmountInUserCart(user.id,
+							(goods_amount) => {
+								if (!goods_amount) {
+									goods_amount = 0;
+								}
+								request.user.goods_in_cart_num = goods_amount;
+								finished();
+							},
+							(err) => {
+								console.log('[ERROR] util.HandleRequest: countGoodsAmountInUserCart: ' + err.detail);
+								SendInternalServerError(response, 'unable to count cart\'s goods amount');
+							}
+						);
+					} else {
+						SendNotFound(response, 'User is not found');
+					}
+				}, (err) => {
+					console.log('[ERROR] util.HandleRequest: getUser: ' + err.detail);
+					SendInternalServerError(response, 'unable to retrieve user');
+				});
+			},
+			(err) => {
+				console.log('[ERROR] util.HandleRequest: VerifyToken: ' + err.detail);
+				request.user = {
+					is_authenticated: false,
+					goods_in_cart_num: 0
+				};
+				finished();
+			}
+		);
 	} else {
-		SendNotAcceptable(response);
+		finished();
 	}
 };
 
@@ -51,25 +98,52 @@ let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 	response['send_json'] = request.headers['accept'] === 'application/json';
 	VerifyToken(request, settings.SecretKey,
 		(data) => {
-			db.getUser(data.username, (user) => {
-				request['user'] = user;
-				HandleRequest({
-					request: request,
-					response: response,
-					get: get,
-					post: post,
-					put: put,
-					delete_
-				});
-			}, () => {
-				SendNotFound(response, 'User is not found');
+			db.getUser(data.username, null, (user) => {
+				if (user) {
+					request['user'] = user;
+					request.user['is_authenticated'] = true;
+					delete request.user.password;
+					db.countGoodsAmountInUserCart(user.id,
+						(goods_amount) => {
+							request.user['goods_in_cart_num'] = goods_amount;
+							HandleRequest(
+								{request: request, response: response, get: get, post: post, put: put, delete_: delete_}
+							);
+						},
+						() => {
+							SendInternalServerError(response, 'unable to count cart\'s goods amount');
+						}
+					);
+				} else {
+					SendNotFound(response, 'User is not found');
+				}
+			}, (err) => {
+				console.log('[ERROR] util.HandleAuthRequest: getUser: ' + err.detail);
+				SendInternalServerError(response, 'unable to retrieve user');
 			});
 		},
 		() => {
-			console.log('Could not verify token');
 			SendForbidden(response);
 		}
 	);
+};
+
+let UploadFile = (request, keyword, success, failed) => {
+	let form = new formidable.IncomingForm();
+	form.parse(request, function (err, fields, files) {
+		let oldPath = files[keyword].path;
+		let now = new Date();
+		let dotPos = files[keyword].name.lastIndexOf('.');
+		let name = files[keyword].name.substring(0, dotPos) + now + files[keyword].name.substring(dotPos);
+		let newPath = path.resolve('./media/') + '/' + name;
+		mv(oldPath, newPath, function (err) {
+			if (err) {
+				failed({detail: err});
+			} else {
+				success(fields, '/media/' + name);
+			}
+		});
+	});
 };
 
 let sendError = (response, err, code, detail) => {
@@ -121,8 +195,15 @@ let SendSuccessResponse = (response, code, content) => {
 	response.send(responseData);
 };
 
+let Render = (request, response, template, context = null) => {
+	if (!context) {
+		context = {};
+	}
+	context['user'] = request.user;
+	response.render(template, context);
+};
+
 module.exports = {
-	VerifyToken: VerifyToken,
 	SendNotAcceptable: SendNotAcceptable,
 	SendNotFound: SendNotFound,
 	SendBadRequest: SendBadRequest,
@@ -130,5 +211,7 @@ module.exports = {
 	SendInternalServerError: SendInternalServerError,
 	HandleRequest: HandleRequest,
 	HandleAuthRequest: HandleAuthRequest,
-	SendSuccessResponse: SendSuccessResponse
+	SendSuccessResponse: SendSuccessResponse,
+	Render: Render,
+	UploadFile: UploadFile
 };

@@ -96,19 +96,29 @@ document.addEventListener('DOMContentLoaded', function domLoadedListener() {
 		util.setCookie('active_tab', 'promotions', 1);
 	});
 
+	let ordersDiv = document.getElementById('orders');
+	let ordersTab = document.getElementById('orders-tab');
+	ordersTab.addEventListener('click', () => {
+		util.setCookie('active_tab', 'orders', 1);
+	});
+
 	if (active_tab && active_tab === 'promotions') {
 		goodsDiv.className += ' fade';
+		ordersDiv.className += ' fade';
 		promotionsDiv.className += ' active show';
 		promotionsTab.className += ' active show';
+	} else if (active_tab && active_tab === 'orders') {
+		ordersDiv.className += ' active show';
+		ordersTab.className += ' active show';
+		promotionsDiv.className += ' fade';
+		goodsDiv.className += ' fade';
 	} else {
 		goodsDiv.className += ' active show';
 		goodsTab.className += ' active show';
 		promotionsDiv.className += ' fade';
+		ordersDiv.className += ' fade';
 	}
 
-	document.getElementById('btn-logout').addEventListener('click', function () {
-		util.eraseCookie('auth_token');
-	});
 	let showMoreGoodsTab = document.getElementById('show-more-goods-tab');
 	showMoreGoodsTab.addEventListener('click', function showMoreGoodsListener() {
 		util.loadPage(
