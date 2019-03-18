@@ -95,7 +95,9 @@ module.exports = {
 								request.params[0],
 								(item) => {
 									if (item) {
-										item.image = filePath;
+										if (filePath !== null) {
+											item.image = filePath;
+										}
 										if (data.title) {
 											item.title = data.title;
 										}
