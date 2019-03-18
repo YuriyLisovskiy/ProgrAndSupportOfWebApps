@@ -23,7 +23,8 @@ class Db {
             last_name     VARCHAR(100)  NULL,
             address       VARCHAR(500)  NULL,
             phone         VARCHAR(50)   NULL,
-            is_superuser  BOOLEAN       DEFAULT FALSE
+            is_superuser  BOOLEAN       DEFAULT FALSE,
+            is_verified   BOOLEAN       DEFAULT FALSE
           );
 
           CREATE TABLE IF NOT EXISTS Promotions (
