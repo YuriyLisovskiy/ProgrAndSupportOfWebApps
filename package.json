@@ -29,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/YuriyLisovskiy/WebAppsDev/issues"
   },
-  "homepage": "https://github.com/YuriyLisovskiy/WebAppsDev#readme"
+  "homepage": "https://github.com/YuriyLisovskiy/WebAppsDev#readme",
+  "engines": {
+    "node": "8.10.*"
+  }
 }
