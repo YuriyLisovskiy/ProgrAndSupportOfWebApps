@@ -79,7 +79,7 @@ let Register = (request, response) => {
 			db.getUser(credentials.username, credentials.email,
 				(user) => {
 					if (user) {
-						util.SendBadRequest(response, 'user already exists');
+						util.Render(request, response, 'index', {errors: 'User already exists.'});
 					} else {
 						db.createUser(
 							credentials.username,
@@ -98,7 +98,7 @@ let Register = (request, response) => {
 													'Registration on Art Store',
 													`Use this link to verify Your account:\n${settings.host}/user/verify/${token}\n\nThank You for registering on our website.`,
 													(detail) => {
-														util.SendSuccessResponse(response, 201, {detail: detail});
+														util.Render(request, response, 'index', {is_registered: detail});
 													},
 													(err) => {
 														console.log('[ERROR] auth.Register, post, sendEmail: ' + err.detail);

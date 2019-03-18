@@ -11,10 +11,12 @@ if (!db) {
 let host = 'http://localhost:3000';
 
 let transporterData = {
-	service: 'gmail',
+	host: 'smtp.gmail.com',
+	port: 587,
+	secure: false,
 	auth: {
 		user: 'deploy.only@gmail.com',
-		pass: 'deploy only'
+		pass: 'deploy.only'
 	}
 };
 

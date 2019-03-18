@@ -45,7 +45,7 @@ module.exports = {
 									util.SendSuccessResponse(response, 200, {
 										goods: updGoods,
 										pages: Math.ceil(goods.length / limit),
-										sort_by: request.query.sort_by !== 'null' ? request.query.sort_by : 'none'
+										sort_by: request.query.sort_by !== 'null' ? request.query.sort_by : 'title_asc'
 									});
 								},
 								() => {

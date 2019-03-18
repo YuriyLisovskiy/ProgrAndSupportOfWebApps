@@ -17,6 +17,7 @@ router.get('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods)
 router.get('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);
 router.get('/user/verify/(([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+))', AuthViews.VerifyUser);
 
+router.post('/register', AuthViews.Register);
 router.post('/administration', AdministrationViews.Administration);
 router.post('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
 router.post('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);
@@ -30,7 +31,6 @@ router.get('/api/orders/goods', OrderViews.GetOrderedGoods);
 router.get('/api/orders/all', AdministrationViews.Orders);
 
 router.post('/api/login', AuthViews.Login);
-router.post('/api/register', AuthViews.Register);
 router.post('/profile', ProfileViews.Profile);
 router.post('/orders/create', OrderViews.CreateOrder);
 router.post('/api/token/verify', AuthViews.VerifyToken);
