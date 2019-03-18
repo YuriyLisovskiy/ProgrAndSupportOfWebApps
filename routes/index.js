@@ -15,6 +15,7 @@ router.get('/profile', ProfileViews.Profile);
 router.get('/administration', AdministrationViews.Administration);
 router.get('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);
 router.get('/administration/promotions/((\\d+))/edit', AdministrationViews.EditPromotion);
+router.get('/user/verify/(([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+))', AuthViews.VerifyUser);
 
 router.post('/administration', AdministrationViews.Administration);
 router.post('/administration/goods/((\\d+))/edit', AdministrationViews.EditGoods);

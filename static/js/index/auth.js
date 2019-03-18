@@ -33,8 +33,7 @@ let register = () => {
 					password: password
 				},
 				success: (data) => {
-					util.setCookie('auth_token', data['key'], 1);
-					location.reload();
+					alert(data.detail);
 				},
 				error: (data) => {
 					alert('Registration failed:\n' + data.detail.detail);
@@ -61,7 +60,7 @@ let login = () => {
 				},
 				success: (data) => {
 					util.setCookie('auth_token', data['key'], 1);
-					location.reload();
+					document.location.href = '/';
 				},
 				error: (data) => {
 					alert('Login failed: ' + data.detail.detail);

@@ -154,7 +154,8 @@ class Db {
 			      last_name = ?,
 			      address = ?,
 			      phone = ?,
-			      is_superuser = ?
+			      is_superuser = ?,
+			      is_verified = ?
 			  WHERE id = ?
 		`);
 		query.run([
@@ -166,7 +167,8 @@ class Db {
 			item.address,
 			item.phone,
 			item.is_superuser,
-			item.id
+			item.id,
+			item.is_verified
 		], function(err) {
 			if (err) {
 				failed({detail: err});
