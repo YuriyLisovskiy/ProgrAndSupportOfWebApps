@@ -44,10 +44,15 @@ block body
 					button(type="button", class="btn", data-dismiss="modal") Close
 					button(type="button", id="btn-register", class="btn btn-secondary", data-dismiss="modal") Submit
 	div(class="container", id="container")
+		div(class="form-group")
+			label(for="sort-by") Sort by:
+			select(class="form-control", id="sort-by", name="sort_by")
+				option(value="none") None
+				option(value="price_asc") From cheap to expensive
+				option(value="price_desc") From expensive to cheap
+				option(value="title_asc") Title ascending
+				option(value="title_desc") Title descending
 		div(class="container", id="inner-container")
-			div(class="form-group")
-				label(for="sort-by") Sort by:
-				select(class="form-control", id="sort-by", name="sort_by")
 
 block footer
 	script(type="module", src="/static/js/index/auth.js")

@@ -186,13 +186,13 @@ class Db {
 			LEFT JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code AND GoodsCarts.cart_id = ?
 		`;
 		switch (sort_by) {
-			case "price_inc":
+			case "price_asc":
 				query += `ORDER BY Goods.price;`;
 				break;
 			case "price_desc":
 				query += `ORDER BY Goods.price DESC;`;
 				break;
-			case "title_inc":
+			case "title_asc":
 				query += `ORDER BY Goods.title;`;
 				break;
 			case "title_desc":
