@@ -4,18 +4,22 @@ let goodsPage = 1;
 
 let createGoodsItem = (item) => {
 	let img = document.createElement('img');
-	img.className = 'card-img-top';
+	img.style.objectFit = 'contain';
 	if (item.image) {
 		img.src = item.image;
 	} else {
 		img.src = 'https://vignette.wikia.nocookie.net/cartoonsserbia/images/4/42/Image-not-available_1.jpg/revision/latest?cb=20180603222946';
 	}
 	img.alt = 'Goods image';
-	img.style.height = 'auto';
-	img.style.maxHeight = '310px';
+	img.style.height = '100%';
 	img.style.width = '100%';
 
 	let imgDiv = document.createElement('div');
+	imgDiv.className = 'card-img-top';
+	imgDiv.style.verticalAlign = 'top';
+	imgDiv.style.textAlign = 'center';
+	imgDiv.style.overflowX = 'hidden';
+
 	imgDiv.style.height = '310px';
 	imgDiv.appendChild(img);
 
