@@ -80,8 +80,7 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 					SendInternalServerError(response, 'unable to retrieve user');
 				});
 			},
-			(err) => {
-				console.log('[ERROR] util.HandleRequest: VerifyToken: ' + err.detail);
+			() => {
 				request.user = {
 					is_authenticated: false,
 					goods_in_cart_num: 0

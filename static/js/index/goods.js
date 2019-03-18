@@ -175,21 +175,58 @@ document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
 	moreBtn.className = 'btn btn-secondary';
 	moreBtn.appendChild(document.createTextNode('Load more'));
 	moreBtn.addEventListener('click', function moreBtnListener() {
-		util.loadPage(
-			'/api/goods',
-			9,
-			goodsPage,
-			null,
-			createGoodsItem,
-			moreBtn,
-			document.getElementById('inner-container'),
-			moreBtnListener,
-			'goods',
-			refreshGoods
-		);
-		goodsPage++;
+		let sortBySelection = document.getElementById('sort-by');
+		util.sendAjax({
+			method: 'GET',
+			url: '/api/goods',
+			params: {
+				page: goodsPage,
+				limit: 9,
+				sort_by: sortBySelection.getAttribute('value')
+			},
+			success: (data) => {
+				refreshGoods(
+					data,
+					null,
+					createGoodsItem,
+					goodsPage, moreBtn,
+					document.getElementById('inner-container'),
+					moreBtnListener,
+					'goods'
+				);
+				goodsPage++;
+
+				//  option(value="none" selected="#{!sort_by ? 'selected': sort_by === 'none' ? 'selected': ''}") None
+				// 	option(value="price_inc" selected="#{sort_by && sort_by === 'price_inc' ? 'selected': ''}") Price (increase)
+				// 	option(value="price_dec" selected="#{sort_by && sort_by === 'price_dec' ? 'selected': ''}") Price (decrease)
+				// 	option(value="title_inc" selected="#{sort_by && sort_by === 'title_inc' ? 'selected': ''}") Title (increase)
+				// 	option(value="title_dec" selected="#{sort_by && sort_by === 'title_dec' ? 'selected': ''}") Title (decrease)
+				let createOption = (value, title, sortBy) => {
+					let option = document.createElement('option');
+					option.setAttribute('value', value);
+					option.appendChild(document.createTextNode(title));
+					if (sortBy === value) {
+						option.setAttribute('selected', 'selected');
+					}
+					return option;
+				};
+				sortBySelection.appendChild(createOption('none', 'None', data.sort_by));
+				sortBySelection.appendChild(createOption('price_inc', 'From cheap to expensive', data.sort_by));
+				sortBySelection.appendChild(createOption('price_dec', 'From expensive to cheap', data.sort_by));
+				sortBySelection.appendChild(createOption('title_inc', 'Title ascending', data.sort_by));
+				sortBySelection.appendChild(createOption('title_dec', 'Title descending', data.sort_by));
+			},
+			error: (data) => {
+				alert(data.detail.detail);
+			}
+		});
 	});
 	moreBtn.click();
 	document.getElementById('container').appendChild(moreBtn);
+	document.getElementById('sort-by').addEventListener('change', (event) => {
+		goodsPage = 1;
+		moreBtn.click();
+		location.reload();
+	});
 	document.removeEventListener('DOMContentLoaded', onLoadedEvent);
 });

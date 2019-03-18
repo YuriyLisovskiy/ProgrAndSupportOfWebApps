@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3');
 const crypto = require('crypto');
+const fs = require('fs');
 
 class Db {
 	constructor(path) {
@@ -175,15 +176,32 @@ class Db {
 		});
 	}
 
-	getAllGoods(cart_pk, success, failed) {
-		this.getData(`
+	getAllGoods(cart_pk, sort_by, success, failed) {
+		let query = `
 			SELECT Goods.code, Goods.title, Goods.price, Goods.description, Goods.image,
 			       Promotions.percentage as discount_percentage,
 			       GoodsCarts.goods_code IS NOT NULL as is_in_cart
 			FROM Goods
 			LEFT JOIN Promotions ON Promotions.id = Goods.promotion
 			LEFT JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code AND GoodsCarts.cart_id = ?
-		`, [cart_pk], success, failed);
+		`;
+		switch (sort_by) {
+			case "price_inc":
+				query += `ORDER BY Goods.price;`;
+				break;
+			case "price_desc":
+				query += `ORDER BY Goods.price DESC;`;
+				break;
+			case "title_inc":
+				query += `ORDER BY Goods.title;`;
+				break;
+			case "title_desc":
+				query += `ORDER BY Goods.title DESC;`;
+				break;
+			default:
+				break;
+		}
+		this.getData(query, [cart_pk], success, failed);
 	}
 
 	getGoodsByUserCart(user_pk, success, failed) {
@@ -275,15 +293,22 @@ class Db {
 	}
 
 	deleteGoods(code, success, failed) {
-		let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
-		query.run([code], function(err) {
-				if (err) {
-					failed({detail: err});
-				} else {
-					success(this.lastID);
-				}
+		this.db.get(`SELECT code, image FROM Goods WHERE code = ?;`, [code], (err, item) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				fs.unlinkSync(__dirname + '/../' + item.image);
+				let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
+				query.run([code], function(err) {
+						if (err) {
+							failed({detail: err});
+						} else {
+							success(this.lastID);
+						}
+					}
+				);
 			}
-		);
+		});
 	}
 
 	getPromotions(success, failed) {

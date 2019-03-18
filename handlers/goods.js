@@ -32,6 +32,7 @@ module.exports = {
 							}
 							db.getAllGoods(
 								cartId,
+								request.query.sort_by,
 								(goods) => {
 									let updGoods = goods.slice(limit * (page - 1), limit * page);
 									for (let i = 0; i < updGoods.length; i++) {
@@ -44,6 +45,7 @@ module.exports = {
 									util.SendSuccessResponse(response, 200, {
 										goods: updGoods,
 										pages: Math.ceil(goods.length / limit),
+										sort_by: request.query.sort_by !== 'null' ? request.query.sort_by : 'none'
 									});
 								},
 								() => {
@@ -68,12 +70,13 @@ module.exports = {
 									util.SendSuccessResponse(response, 201, {detail: 'goods item is deleted'})
 								},
 								(err) => {
-									console.log('[ERROR] cart.GoodsRemove, deleteGoodsFromCart: ' + err.detail);
+									console.log('[ERROR] goods.Goods, deleteGoods: ' + err.detail);
 									util.SendInternalServerError(response);
 								}
 							);
 						},
 						(err) => {
+							console.log('[ERROR] goods.Goods, deleteGoodsFromCart: ' + err.detail);
 							util.SendInternalServerError(response, err);
 						}
 					);

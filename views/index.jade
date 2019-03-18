@@ -45,6 +45,9 @@ block body
 					button(type="button", id="btn-register", class="btn btn-secondary", data-dismiss="modal") Submit
 	div(class="container", id="container")
 		div(class="container", id="inner-container")
+			div(class="form-group")
+				label(for="sort-by") Sort by:
+				select(class="form-control", id="sort-by", name="sort_by")
 
 block footer
 	script(type="module", src="/static/js/index/auth.js")
