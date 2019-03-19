@@ -47,7 +47,7 @@ let createOrderedGoodsRow = (item) => {
 	amount.appendChild(document.createTextNode(item.amount));
 
 	let totalSum = document.createElement('th');
-	totalSum.appendChild(document.createTextNode('$' + item.total_sum.toFixed(2)));
+	totalSum.appendChild(document.createTextNode('₴' + item.total_sum.toFixed(2)));
 
 	let tr = document.createElement('tr');
 	tr.appendChild(id);
@@ -125,17 +125,18 @@ let createOrderRow = (item) => {
 	let codeToStatus = (code) => {
 		switch (code) {
 			case 1:
-				return 'In the way';
+				return 'On it\'s way';
 			case 2:
 				return 'Delivered';
 			case 3:
 				return 'Rejected';
 			default:
-				return 'Waiting for load';
+				return 'Being loaded';
 		}
 	};
 
 	let status = document.createElement('th');
+	status.style.minWidth = '170px';
 	status.appendChild(document.createTextNode(codeToStatus(parseInt(item.status))));
 
 	let tr = document.createElement('tr');

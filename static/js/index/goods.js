@@ -59,7 +59,7 @@ let createGoodsItem = (item) => {
 	} else {
 		price.style.textDecoration = 'line-through';
 	}
-	price.appendChild(document.createTextNode('$ ' + item['price']));
+	price.appendChild(document.createTextNode('₴ ' + item['price']));
 
 	let discount_price = document.createElement('span');
 	if (item.discount_price) {
@@ -67,7 +67,7 @@ let createGoodsItem = (item) => {
 		discount_price.style.float = 'left';
 		discount_price.style.marginLeft = '10px';
 		discount_price.style.backgroundColor = '#517c1b';
-		discount_price.appendChild(document.createTextNode('$ ' + item.discount_price));
+		discount_price.appendChild(document.createTextNode('₴ ' + item.discount_price));
 	}
 
 	let btn = document.createElement('button');
@@ -208,21 +208,33 @@ let loadMore = (moreBtn, moreBtnListener, container) => {
 	});
 };
 
-document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
-	let container = document.getElementById('inner-container');
-
+let createMoreBtn = (containerInner) => {
 	let moreBtn = document.createElement('button');
 	moreBtn.className = 'btn btn-secondary';
 	moreBtn.appendChild(document.createTextNode('Load more'));
 	moreBtn.addEventListener('click', function moreBtnListener() {
-		loadMore(moreBtn, moreBtnListener, container);
+		loadMore(this, moreBtnListener, containerInner);
 	});
+	return moreBtn;
+};
+
+document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
+	let containerInner = document.getElementById('inner-container');
+
+	let moreBtn = createMoreBtn(containerInner);
 	moreBtn.click();
-	document.getElementById('container').appendChild(moreBtn);
+
+	let container = document.getElementById('container');
+	container.appendChild(moreBtn);
+
 	document.getElementById('sort-by').addEventListener('change', () => {
 		goodsPage = 1;
-		container.innerHTML = '';
-		loadMore(null, null, container);
+		containerInner.innerHTML = '';
+		if (!container.contains(moreBtn)) {
+			moreBtn = createMoreBtn(containerInner);
+			container.appendChild(moreBtn);
+		}
+		loadMore(moreBtn, null, containerInner);
 	});
 	document.removeEventListener('DOMContentLoaded', onLoadedEvent);
 });

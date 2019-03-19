@@ -41,7 +41,7 @@ function resetSum (totalSumContainer, code, sign = 1) {
 	let totalSum = parseFloat(totalSumContainer.getAttribute('value'));
 	let itemPrice = parseFloat(document.getElementById('item-price-' + code).getAttribute('value'));
 	let newSum = Number(totalSum + itemPrice * sign).toFixed(2);
-	totalSumContainer.innerText = '$ ' + (newSum).toString();
+	totalSumContainer.innerText = '₴ ' + (newSum).toString();
 	totalSumContainer.setAttribute('value', newSum);
 }
 
