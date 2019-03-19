@@ -208,21 +208,33 @@ let loadMore = (moreBtn, moreBtnListener, container) => {
 	});
 };
 
-document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
-	let container = document.getElementById('inner-container');
-
+let createMoreBtn = (containerInner) => {
 	let moreBtn = document.createElement('button');
 	moreBtn.className = 'btn btn-secondary';
 	moreBtn.appendChild(document.createTextNode('Load more'));
 	moreBtn.addEventListener('click', function moreBtnListener() {
-		loadMore(moreBtn, moreBtnListener, container);
+		loadMore(this, moreBtnListener, containerInner);
 	});
+	return moreBtn;
+};
+
+document.addEventListener('DOMContentLoaded', function onLoadedEvent() {
+	let containerInner = document.getElementById('inner-container');
+
+	let moreBtn = createMoreBtn(containerInner);
 	moreBtn.click();
-	document.getElementById('container').appendChild(moreBtn);
+
+	let container = document.getElementById('container');
+	container.appendChild(moreBtn);
+
 	document.getElementById('sort-by').addEventListener('change', () => {
 		goodsPage = 1;
-		container.innerHTML = '';
-		loadMore(null, null, container);
+		containerInner.innerHTML = '';
+		if (!container.contains(moreBtn)) {
+			moreBtn = createMoreBtn(containerInner);
+			container.appendChild(moreBtn);
+		}
+		loadMore(moreBtn, null, containerInner);
 	});
 	document.removeEventListener('DOMContentLoaded', onLoadedEvent);
 });
