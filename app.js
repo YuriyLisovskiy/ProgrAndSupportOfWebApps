@@ -4,6 +4,8 @@ let cookieParser = require('cookie-parser');
 let fs = require('fs');
 
 let router = require('./routes/index');
+let adminRouter = require('./routes/administration');
+let apiRouter = require('./routes/api');
 
 let app = express();
 
@@ -17,6 +19,9 @@ app.use('/static', express.static('static'));
 app.use('/media', express.static('media'));
 
 app.use('/', router);
+app.use('/api', apiRouter);
+app.use('/administration', adminRouter);
+
 
 app.use(function(req, res){
 	res.status(404);
