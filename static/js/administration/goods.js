@@ -11,7 +11,7 @@ let createGoodsRow = (item) => {
 	title.appendChild(pTitle);
 
 	let price = document.createElement('th');
-	price.appendChild(document.createTextNode('$ ' + item['price']));
+	price.appendChild(document.createTextNode('₴ ' + item['price']));
 
 	let pDescription = document.createElement('p');
 	pDescription.style.textOverflow = 'word-wrap';

@@ -59,7 +59,7 @@ let createGoodsItem = (item) => {
 	} else {
 		price.style.textDecoration = 'line-through';
 	}
-	price.appendChild(document.createTextNode('$ ' + item['price']));
+	price.appendChild(document.createTextNode('₴ ' + item['price']));
 
 	let discount_price = document.createElement('span');
 	if (item.discount_price) {
@@ -67,7 +67,7 @@ let createGoodsItem = (item) => {
 		discount_price.style.float = 'left';
 		discount_price.style.marginLeft = '10px';
 		discount_price.style.backgroundColor = '#517c1b';
-		discount_price.appendChild(document.createTextNode('$ ' + item.discount_price));
+		discount_price.appendChild(document.createTextNode('₴ ' + item.discount_price));
 	}
 
 	let btn = document.createElement('button');

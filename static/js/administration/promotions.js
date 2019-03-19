@@ -9,10 +9,10 @@ let createPromotionGoodsRow = (item) => {
 	title.appendChild(document.createTextNode(item['title']));
 
 	let price = document.createElement('th');
-	price.appendChild(document.createTextNode('$ ' + item['price']));
+	price.appendChild(document.createTextNode('₴ ' + item['price']));
 
 	let priceWithDiscount = document.createElement('th');
-	priceWithDiscount.appendChild(document.createTextNode('$ ' + item['discount_price']));
+	priceWithDiscount.appendChild(document.createTextNode('₴ ' + item['discount_price']));
 
 	let btnDelete = document.createElement('button');
 	btnDelete.className = 'btn btn-danger';
@@ -134,7 +134,7 @@ let createPromotionRow = (item) => {
 	id.appendChild(document.createTextNode(item['id']));
 
 	let percentage = document.createElement('th');
-	percentage.appendChild(document.createTextNode('-' + item['percentage'] + '%'));
+	percentage.appendChild(document.createTextNode(item['percentage'] + '%'));
 
 	let comment = document.createElement('p');
 	comment.style.textOverflow = 'word-wrap';

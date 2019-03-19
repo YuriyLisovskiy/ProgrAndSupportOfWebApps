@@ -47,7 +47,7 @@ let createOrderedGoodsRow = (item) => {
 	amount.appendChild(document.createTextNode(item.amount));
 
 	let totalSum = document.createElement('th');
-	totalSum.appendChild(document.createTextNode('$' + item.total_sum.toFixed(2)));
+	totalSum.appendChild(document.createTextNode('₴' + item.total_sum.toFixed(2)));
 
 	let tr = document.createElement('tr');
 	tr.appendChild(id);
