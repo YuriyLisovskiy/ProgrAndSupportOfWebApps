@@ -125,13 +125,13 @@ let createOrderRow = (item) => {
 	let codeToStatus = (code) => {
 		switch (code) {
 			case 1:
-				return 'In the way';
+				return 'On it\'s way';
 			case 2:
 				return 'Delivered';
 			case 3:
 				return 'Rejected';
 			default:
-				return 'Waiting for load';
+				return 'Being loaded';
 		}
 	};
 
@@ -166,6 +166,7 @@ let createOrderRow = (item) => {
 	statusDiv.appendChild(selection);
 
 	let statusTh = document.createElement('th');
+	statusTh.style.minWidth = '170px';
 	statusTh.appendChild(statusDiv);
 
 	let tr = document.createElement('tr');
