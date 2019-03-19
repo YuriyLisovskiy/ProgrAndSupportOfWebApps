@@ -6,14 +6,15 @@ const mv = require('mv');
 
 let db = settings.Db;
 
-let VerifyToken = (request, secret, success, failed) => {
-	let token = request.cookies['auth_token'];
+let VerifyToken = (token, secret, success, failed) => {
 	if (token) {
 		jwt.verify(token, secret, (err, data) => {
 			if (err) {
 				failed(err);
+			} else if (data) {
+				db.getUser(data.username, data.email, (user) => {success(user);}, (err) => {failed(err.default);});
 			} else {
-				success(data);
+				failed('error');
 			}
 		});
 	} else {
@@ -53,35 +54,38 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 		}
 	};
 	if (!request.user) {
-		VerifyToken(request, settings.SecretKey,
+		VerifyToken(request.cookies['auth_token'], settings.SecretKey,
 			function (data) {
-				db.getUser(data.username, null, (user) => {
-					if (user) {
-						request.user = user;
-						request.user.is_authenticated = true;
-						db.countGoodsAmountInUserCart(user.id,
-							(goods_amount) => {
-								if (!goods_amount) {
-									goods_amount = 0;
+				if (data) {
+					db.getUser(data.username, null, (user) => {
+						if (user) {
+							request.user = user;
+							request.user.is_authenticated = true;
+							db.countGoodsAmountInUserCart(user.id,
+								(goods_amount) => {
+									if (!goods_amount) {
+										goods_amount = 0;
+									}
+									request.user.goods_in_cart_num = goods_amount;
+									finished();
+								},
+								(err) => {
+									console.log('[ERROR] util.HandleRequest: countGoodsAmountInUserCart: ' + err.detail);
+									SendInternalServerError(response, 'unable to count cart\'s goods amount');
 								}
-								request.user.goods_in_cart_num = goods_amount;
-								finished();
-							},
-							(err) => {
-								console.log('[ERROR] util.HandleRequest: countGoodsAmountInUserCart: ' + err.detail);
-								SendInternalServerError(response, 'unable to count cart\'s goods amount');
-							}
-						);
-					} else {
-						SendNotFound(response, 'User is not found');
-					}
-				}, (err) => {
-					console.log('[ERROR] util.HandleRequest: getUser: ' + err.detail);
-					SendInternalServerError(response, 'unable to retrieve user');
-				});
+							);
+						} else {
+							SendNotFound(response, 'User is not found');
+						}
+					}, (err) => {
+						console.log('[ERROR] util.HandleRequest: getUser: ' + err.detail);
+						SendInternalServerError(response, 'unable to retrieve user');
+					});
+				} else {
+					SendBadRequest(response, 'Try to clear your browser\'s cookies');
+				}
 			},
-			(err) => {
-				console.log('[ERROR] util.HandleRequest: VerifyToken: ' + err.detail);
+			() => {
 				request.user = {
 					is_authenticated: false,
 					goods_in_cart_num: 0
@@ -96,7 +100,7 @@ let HandleRequest = ({request, response, get, post, put, delete_}) => {
 
 let HandleAuthRequest = ({request, response, get, post, put, delete_}) => {
 	response['send_json'] = request.headers['accept'] === 'application/json';
-	VerifyToken(request, settings.SecretKey,
+	VerifyToken(request.cookies['auth_token'], settings.SecretKey,
 		(data) => {
 			db.getUser(data.username, null, (user) => {
 				if (user) {
@@ -217,5 +221,6 @@ module.exports = {
 	HandleAuthRequest: HandleAuthRequest,
 	SendSuccessResponse: SendSuccessResponse,
 	Render: Render,
-	UploadFile: UploadFile
+	UploadFile: UploadFile,
+	VerifyToken: VerifyToken
 };

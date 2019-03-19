@@ -8,7 +8,21 @@ if (!db) {
 	db.createDb();
 }
 
+let host = 'http://localhost:3000';
+
+let transporterData = {
+	host: 'smtp.gmail.com',
+	port: 587,
+	secure: false,
+	auth: {
+		user: 'deploy.only@gmail.com',
+		pass: 'deploy.only'
+	}
+};
+
 module.exports = {
 	SecretKey: secret,
-	Db: db
+	Db: db,
+	transporterData: transporterData,
+	host: host
 };

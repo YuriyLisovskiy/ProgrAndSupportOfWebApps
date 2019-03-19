@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3');
 const crypto = require('crypto');
+const fs = require('fs');
 
 class Db {
 	constructor(path) {
@@ -14,75 +15,77 @@ class Db {
 	createDb() {
 		let query = `
           CREATE TABLE IF NOT EXISTS Users (
-		    id            INTEGER       PRIMARY KEY,
-		    username      VARCHAR(100)  UNIQUE NOT NULL,
-		    email         VARCHAR(255)  UNIQUE NOT NULL,
-		    password      VARCHAR(100)  NOT NULL,
-		    first_name    VARCHAR(100)  NULL,
-		    last_name     VARCHAR(100)  NULL,
-		    address       VARCHAR(500)  NULL,
-		    phone         VARCHAR(50)   NULL,
-		    is_superuser  BOOLEAN       DEFAULT FALSE
-		);
-		
-		CREATE TABLE IF NOT EXISTS Promotions (
-		    id            INTEGER       PRIMARY KEY,
-		    percentage    INTEGER       DEFAULT 0,
-		    comment       VARCHAR(255)  NULL
-		);
-		
-		CREATE TABLE IF NOT EXISTS Goods (
-		    code          INTEGER       PRIMARY KEY,
-		    title         VARCHAR(255)  NOT NULL,
-		    price         DECIMAL       NOT NULL,
-		    image         VARCHAR(500)  NULL,
-		    description   TEXT DEFAULT  NULL,
-		    promotion     INTEGER       NULL,
-		
-		    FOREIGN KEY(promotion) REFERENCES Promotions(id)
-		);
-		
-		CREATE TABLE IF NOT EXISTS Carts (
-		    id                INTEGER       PRIMARY KEY,
-		    user_id           INTEGER(100)  UNIQUE,
-		
-		    FOREIGN KEY(user_id) REFERENCES Users(id)
-		);
-		
-		CREATE TABLE IF NOT EXISTS GoodsCarts (
-		    goods_code  INTEGER NOT NULL,
-		    cart_id     INTEGER NOT NULL,
-		    amount      INTEGER DEFAULT 1,
-		
-		    FOREIGN KEY(goods_code) REFERENCES Goods(code),
-		    FOREIGN KEY(cart_id) REFERENCES Carts(id),
-		
-		    PRIMARY KEY (goods_code, cart_id)
-		);
+            id            INTEGER       PRIMARY KEY,
+            username      VARCHAR(100)  UNIQUE NOT NULL,
+            email         VARCHAR(255)  UNIQUE NOT NULL,
+            password      VARCHAR(100)  NOT NULL,
+            first_name    VARCHAR(100)  NULL,
+            last_name     VARCHAR(100)  NULL,
+            address       VARCHAR(500)  NULL,
+            phone         VARCHAR(50)   NULL,
+            is_superuser  BOOLEAN       DEFAULT FALSE,
+            is_verified   BOOLEAN       DEFAULT FALSE
+          );
 
-		CREATE TABLE IF NOT EXISTS Orders (
-		  	id                  INTEGER       PRIMARY KEY,
-          	status              VARCHAR(20)   DEFAULT 'In progress',
-		  	destination_address VARCHAR(500)  NOT NULL,
-		  	u_first_name        VARCHAR(100)  NOT NULL,
-		  	u_last_name         VARCHAR(100)  NOT NULL,
-		  	u_phone             VARCHAR(50)   NOT NULL,
-		  	u_email             VARCHAR(255)  NOT NULL,
-		  	user_id             INTEGER       NOT NULL,
-		
-		  	FOREIGN KEY(user_id) REFERENCES Users(id)
-		);
+          CREATE TABLE IF NOT EXISTS Promotions (
+            id            INTEGER       PRIMARY KEY,
+            percentage    INTEGER       DEFAULT 0,
+            comment       VARCHAR(255)  NULL
+          );
 
-        CREATE TABLE IF NOT EXISTS OrdersGoods (
-          	order_pk  INTEGER   NOT NULL,
-          	goods_pk  INTEGER   NOT NULL,
+          CREATE TABLE IF NOT EXISTS Goods (
+            code          INTEGER       PRIMARY KEY,
+            title         VARCHAR(255)  NOT NULL,
+            price         DECIMAL       NOT NULL,
+            image         VARCHAR(500)  NULL,
+            description   TEXT DEFAULT  NULL,
+            promotion     INTEGER       NULL,
+
+            FOREIGN KEY(promotion) REFERENCES Promotions(id)
+          );
+
+          CREATE TABLE IF NOT EXISTS Carts (
+            id                INTEGER       PRIMARY KEY,
+            user_id           INTEGER(100)  UNIQUE,
+
+            FOREIGN KEY(user_id) REFERENCES Users(id)
+          );
+
+          CREATE TABLE IF NOT EXISTS GoodsCarts (
+            goods_code  INTEGER NOT NULL,
+            cart_id     INTEGER NOT NULL,
+            amount      INTEGER DEFAULT 1,
+
+            FOREIGN KEY(goods_code) REFERENCES Goods(code),
+            FOREIGN KEY(cart_id) REFERENCES Carts(id),
+
+            PRIMARY KEY (goods_code, cart_id)
+          );
+
+          CREATE TABLE IF NOT EXISTS Orders (
+            id                  INTEGER       PRIMARY KEY,
+            status              INTEGER       DEFAULT 0,
+            destination_address VARCHAR(500)  NOT NULL,
+            u_first_name        VARCHAR(100)  NOT NULL,
+            u_last_name         VARCHAR(100)  NOT NULL,
+            u_phone             VARCHAR(50)   NOT NULL,
+            u_email             VARCHAR(255)  NULL,
+            user_id             INTEGER       NOT NULL,
+
+            FOREIGN KEY(user_id) REFERENCES Users(id)
+          );
+
+          CREATE TABLE IF NOT EXISTS OrdersGoods (
+            order_pk  INTEGER   NOT NULL,
+            goods_pk  INTEGER   NOT NULL,
             amount    INTEGER   DEFAULT 1,
+            total_sum INTEGER   NOT NULL,
 
-          	FOREIGN KEY(order_pk) REFERENCES Orders(id),
-          	FOREIGN KEY(goods_pk) REFERENCES Goods(code),
+            FOREIGN KEY(order_pk) REFERENCES Orders(id),
+            FOREIGN KEY(goods_pk) REFERENCES Goods(code),
 
-          	PRIMARY KEY (order_pk, goods_pk)
-        );
+            PRIMARY KEY (order_pk, goods_pk)
+          );
 `;
 		this.db.run(query, (err) => {
 			if (err) {
@@ -152,7 +155,8 @@ class Db {
 			      last_name = ?,
 			      address = ?,
 			      phone = ?,
-			      is_superuser = ?
+			      is_superuser = ?,
+			      is_verified = ?
 			  WHERE id = ?
 		`);
 		query.run([
@@ -164,7 +168,8 @@ class Db {
 			item.address,
 			item.phone,
 			item.is_superuser,
-			item.id
+			item.id,
+			item.is_verified
 		], function(err) {
 			if (err) {
 				failed({detail: err});
@@ -174,15 +179,32 @@ class Db {
 		});
 	}
 
-	getAllGoods(cart_pk, success, failed) {
-		this.getData(`
+	getAllGoods(cart_pk, sort_by, success, failed) {
+		let query = `
 			SELECT Goods.code, Goods.title, Goods.price, Goods.description, Goods.image,
 			       Promotions.percentage as discount_percentage,
 			       GoodsCarts.goods_code IS NOT NULL as is_in_cart
 			FROM Goods
 			LEFT JOIN Promotions ON Promotions.id = Goods.promotion
 			LEFT JOIN GoodsCarts ON GoodsCarts.goods_code = Goods.code AND GoodsCarts.cart_id = ?
-		`, [cart_pk], success, failed);
+		`;
+		switch (sort_by) {
+			case "price_asc":
+				query += `ORDER BY Goods.price;`;
+				break;
+			case "price_desc":
+				query += `ORDER BY Goods.price DESC;`;
+				break;
+			case "title_asc":
+				query += `ORDER BY Goods.title;`;
+				break;
+			case "title_desc":
+				query += `ORDER BY Goods.title DESC;`;
+				break;
+			default:
+				break;
+		}
+		this.getData(query, [cart_pk], success, failed);
 	}
 
 	getGoodsByUserCart(user_pk, success, failed) {
@@ -274,15 +296,22 @@ class Db {
 	}
 
 	deleteGoods(code, success, failed) {
-		let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
-		query.run([code], function(err) {
-				if (err) {
-					failed({detail: err});
-				} else {
-					success(this.lastID);
-				}
+		this.db.get(`SELECT code, image FROM Goods WHERE code = ?;`, [code], (err, item) => {
+			if (err) {
+				failed({detail: err});
+			} else {
+				fs.unlinkSync(__dirname + '/../' + item.image);
+				let query = this.db.prepare(`DELETE FROM Goods WHERE Goods.code = ?`);
+				query.run([code], function(err) {
+						if (err) {
+							failed({detail: err});
+						} else {
+							success(this.lastID);
+						}
+					}
+				);
 			}
-		);
+		});
 	}
 
 	getPromotions(success, failed) {

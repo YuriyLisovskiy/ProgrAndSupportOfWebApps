@@ -12,6 +12,7 @@
     "jade": "^1.11.0",
     "jsonwebtoken": "^8.5.0",
     "mv": "^2.1.1",
+    "nodemailer": "^5.1.1",
     "nodemon": "^1.18.10",
     "sqlite3": "^4.0.6"
   },
@@ -29,5 +30,8 @@
   "bugs": {
     "url": "https://github.com/YuriyLisovskiy/WebAppsDev/issues"
   },
-  "homepage": "https://github.com/YuriyLisovskiy/WebAppsDev#readme"
+  "homepage": "https://github.com/YuriyLisovskiy/WebAppsDev#readme",
+  "engines": {
+    "node": "8.10.*"
+  }
 }
